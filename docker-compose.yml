@@ -6,7 +6,7 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "wget -qO- http://localhost:8888/actuator/health || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 3
       start_period: 5s
@@ -17,7 +17,7 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 3
       start_period: 5s
@@ -26,7 +26,14 @@ services:
         condition: service_healthy
   executor:
     build: ./executor-service
-    privileged: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETFCAP
+      - SETGID
+    security_opt:
+      - no-new-privileges
+      - seccomp=unconfined
     ports:
       - "8080:8080"
     depends_on:
@@ -37,7 +44,7 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 3
       start_period: 5s
