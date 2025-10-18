@@ -1,3 +1,13 @@
+## Tech Stack
+| Component    | Primary Technologies     |
+| :----------- | ------------------------ |
+| Backend      | Spring Boot, Spring Cloud|
+| Messaging    | Apache Kafka             |
+| Databases    | PostgreSQL               |
+| Search       | Apache Lucene            |
+| Storage      | MinIO                    |
+| Execution    | NSJail                   |
+
 ## System Architecture
 Built on an Event-Driven Architecture (EDA), this system implements loosely coupled microservices for maximum agility and independent scaling. All core operations are handled asynchronously using a Message Queue, which guarantees system resilience and enables real-time notifications for user feedback.
 
@@ -31,12 +41,23 @@ Built on an Event-Driven Architecture (EDA), this system implements loosely coup
   - Ensures decoupled communication between services.
   - Allows horizontal scaling of processing services without tight coupling.
 
-## Tech Stack
-| Component    | Primary Technologies     |
-| :----------- | ------------------------ |
-| Backend      | Spring Boot, Spring Cloud|
-| Messaging    | Apache Kafka             |
-| Databases    | PostgreSQL               |
-| Search       | Apache Lucene            |
-| Storage      | MinIO                    |
-| Execution    | NSJail                   |
+## Probem Service
+
+### Overview
+The Problem Service is responsible for managing all coding problem–related data in the system.
+It acts as the central knowledge base for the platform, storing detailed information about coding problems, their metadata, categorization, and associated testcases used for automatic evaluation.
+
+### Database
+The schema is fully normalized (3NF), avoiding data duplication and ensuring referential integrity.
+Tags, difficulties, and testcases are modular — each can evolve independently.
+
+<img width="3068" height="1604" alt="LeetCode-Problem-Service-Database" src="https://github.com/user-attachments/assets/c9f06771-c9bd-406e-9d9f-c96eb396bfa5" />
+
+| Table             | Description                                                                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`Problem`**     | Core table representing a coding challenge. Contains metadata such as title, description, and difficulty.                                                                          |
+| **`Difficulty`**  | Defines available difficulty levels (`Easy`, `Medium`, `Hard`, etc.) and provides referential consistency for the `Problem` table.                                                 |
+| **`Tag`**         | Contains reusable tags (topics like `arrays`, `dp`, `graph`) that classify problems for search and filtering.                                                                      |
+| **`Problem_Tag`** | A many-to-many relation linking problems with multiple tags. Allows flexible topic categorization and efficient querying.                                                          |
+| **`Testcase`**    | References test files stored in S3 (or another object storage). Each testcase belongs to a single problem and is used by the Executor Service during code evaluation. |
+
