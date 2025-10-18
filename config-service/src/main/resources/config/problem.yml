@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: problem
+  datasource:
+    username: problem-database
+    password: problem-database
+    url: jdbc:postgresql://problem-database:5432/problem-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery:8761/eureka
+  instance:
+    prefer-ip-address: true
