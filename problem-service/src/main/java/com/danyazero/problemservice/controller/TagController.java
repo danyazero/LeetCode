@@ -18,7 +18,7 @@ public class TagController {
     public Tag createTopicTag(@RequestBody TagDto tagDto) {
         System.out.println(tagDto);
         var tagEntity = Tag.builder()
-                .tag(tagDto.tag())
+                .value(tagDto.tag())
                 .build();
 
         return tagRepository.save(tagEntity);
@@ -30,9 +30,9 @@ public class TagController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
-        var foundedTagsPage = tagRepository.findAllByTagIsContainingIgnoreCase(query, PageRequest.of(page, size));
+        var foundedTagsPage = tagRepository.findAllByValueIsContainingIgnoreCase(query, PageRequest.of(page, size));
 
-        return PageDto.map(foundedTagsPage);
+        return PageDto.of(foundedTagsPage);
     }
 
     @GetMapping
@@ -42,7 +42,7 @@ public class TagController {
     ) {
         var tagPage = tagRepository.findAll(PageRequest.of(page, size));
 
-        return PageDto.map(tagPage);
+        return PageDto.of(tagPage);
     }
 
     @DeleteMapping("/{tagId}")

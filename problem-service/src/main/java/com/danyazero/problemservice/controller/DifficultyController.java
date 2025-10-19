@@ -17,7 +17,7 @@ public class DifficultyController {
     @PostMapping
     public Difficulty createDifficulty(@RequestBody DifficultyDto difficultyDto) {
         var difficultyEntity = Difficulty.builder()
-                .difficulty(difficultyDto.difficulty())
+                .value(difficultyDto.difficulty())
                 .build();
 
         return difficultyRepository.save(difficultyEntity);
@@ -30,7 +30,7 @@ public class DifficultyController {
     ) {
         var difficultyPage = difficultyRepository.findAll(PageRequest.of(page, size));
 
-        return PageDto.map(difficultyPage);
+        return PageDto.of(difficultyPage);
     }
 
     @DeleteMapping("/{difficultyId}")

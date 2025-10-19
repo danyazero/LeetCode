@@ -17,6 +17,6 @@ public class Difficulty {
     private Integer id;
 
     @Column(name = "difficulty", nullable = false, length = 24)
-    private String difficulty;
+    private String value;
 
 }

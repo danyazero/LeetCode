@@ -3,8 +3,6 @@ package com.danyazero.problemservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
-
 @Getter
 @Setter
 @Entity
@@ -19,5 +17,5 @@ public class Tag {
     private Integer id;
 
     @Column(name = "tag", nullable = false, length = 24)
-    private String tag;
+    private String value;
 }

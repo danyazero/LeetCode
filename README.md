@@ -13,6 +13,8 @@ Built on an Event-Driven Architecture (EDA), this system implements loosely coup
 
 <img width="3912" height="2019" alt="LeetCode-System-Design-Schema" src="https://github.com/user-attachments/assets/67b597a0-0266-433b-b073-872859819b23" />
 
+> Initially, Apache Lucene was considered for full-text search, but PostgreSQL’s built-in FTS was chosen instead due to simplicity, reliability, and reduced data duplication.
+
 ## Components
 1. **API Gateway**
   - Acts as the single entry point for all client requests.
@@ -60,4 +62,3 @@ Tags, difficulties, and testcases are modular — each can evolve independently.
 | **`Tag`**         | Contains reusable tags (topics like `arrays`, `dp`, `graph`) that classify problems for search and filtering.                                                                      |
 | **`Problem_Tag`** | A many-to-many relation linking problems with multiple tags. Allows flexible topic categorization and efficient querying.                                                          |
 | **`Testcase`**    | References test files stored in S3 (or another object storage). Each testcase belongs to a single problem and is used by the Executor Service during code evaluation. |
-

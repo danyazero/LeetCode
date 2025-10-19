@@ -1,6 +1,5 @@
 package com.danyazero.problemservice.model;
 
-import com.danyazero.problemservice.entity.Tag;
 import lombok.Builder;
 import org.springframework.data.domain.Page;
 
@@ -15,7 +14,7 @@ public record PageDto<T>(
         boolean isLast,
         boolean isFirst
 ) {
-    public static <T> PageDto<T> map(Page<T> page) {
+    public static <T> PageDto<T> of(Page<T> page) {
         return PageDto.<T>builder()
                 .pageNumber(page.getPageable().getPageNumber())
                 .pageSize(page.getPageable().getPageSize())
