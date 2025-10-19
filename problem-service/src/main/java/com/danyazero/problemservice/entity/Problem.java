@@ -1,8 +1,7 @@
 package com.danyazero.problemservice.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
@@ -11,7 +10,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "problem")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

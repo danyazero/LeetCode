@@ -16,8 +16,9 @@ public class TagController {
 
     @PostMapping
     public Tag createTopicTag(@RequestBody TagDto tagDto) {
+        System.out.println(tagDto);
         var tagEntity = Tag.builder()
-                .tag(tagDto.title())
+                .tag(tagDto.tag())
                 .build();
 
         return tagRepository.save(tagEntity);
@@ -42,5 +43,10 @@ public class TagController {
         var tagPage = tagRepository.findAll(PageRequest.of(page, size));
 
         return PageDto.map(tagPage);
+    }
+
+    @DeleteMapping("/{tagId}")
+    public void deleteById(@PathVariable int tagId) {
+        tagRepository.deleteById(tagId);
     }
 }
