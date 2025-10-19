@@ -1,4 +1,8 @@
 spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: com.danyazero.problemservice.config.PostgresDialect
   application:
     name: problem
   datasource:

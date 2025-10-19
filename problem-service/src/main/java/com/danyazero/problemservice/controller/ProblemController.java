@@ -6,7 +6,6 @@ import com.danyazero.problemservice.model.CreateProblemDto;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.service.ProblemService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,11 +22,14 @@ public class ProblemController {
 
     @GetMapping
     public PageDto<Problem> getProblems(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Integer tag,
+            @RequestParam(required = false) Integer difficulty,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
         return PageDto.of(
-                repository.findAll(PageRequest.of(page, size))
+                service.findProblems(query, tag, difficulty, page, size)
         );
     }
 
