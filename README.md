@@ -1,21 +1,22 @@
-## Tech Stack
+# Tech Stack
 | Component    | Primary Technologies     |
 | :----------- | ------------------------ |
 | Backend      | Spring Boot, Spring Cloud|
 | Messaging    | Apache Kafka             |
 | Databases    | PostgreSQL               |
-| Search       | Apache Lucene            |
 | Storage      | MinIO                    |
 | Execution    | NSJail                   |
 
-## System Architecture
+# System Architecture
 Built on an Event-Driven Architecture (EDA), this system implements loosely coupled microservices for maximum agility and independent scaling. All core operations are handled asynchronously using a Message Queue, which guarantees system resilience and enables real-time notifications for user feedback.
 
-<img width="3912" height="2019" alt="LeetCode-System-Design-Schema" src="https://github.com/user-attachments/assets/67b597a0-0266-433b-b073-872859819b23" />
+<img width="3912" height="2019" alt="LeetCode-System-Design-2" src="https://github.com/user-attachments/assets/ad28293f-f985-48ae-a103-55737506820b" />
 
+
+> [!NOTE]
 > Initially, Apache Lucene was considered for full-text search, but PostgreSQL’s built-in FTS was chosen instead due to simplicity, reliability, and reduced data duplication.
 
-## Components
+### Components
 1. **API Gateway**
   - Acts as the single entry point for all client requests.
   - Handles HTTP API requests and WebSocket connections.
@@ -38,12 +39,18 @@ Built on an Event-Driven Architecture (EDA), this system implements loosely coup
   - Maintains active WebSocket connections with clients through the `API Gateway`.
   - Subscribes to the `Message Queue` to receive Evaluation events.
   - Sends real-time notifications to the corresponding users about their submission results.
-6. **Message Queue**
+6. **User Service**
+  - Manages user accounts, registration, and authentication data.
+  - Stores user profiles and credentials in User DB.
+  - Issues and refreshes authentication tokens.
+  - The `API Gateway` verifies tokens for incoming requests.
+  - Provides APIs for other services that require user information.
+7. **Message Queue**
   - Serves as the central communication bus for all asynchronous events.
   - Ensures decoupled communication between services.
   - Allows horizontal scaling of processing services without tight coupling.
 
-## Probem Service
+# Probem Service
 
 ### Overview
 The Problem Service is responsible for managing all coding problem–related data in the system.
