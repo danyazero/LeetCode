@@ -103,7 +103,7 @@ services:
       retries: 3
       start_period: 5s
   problem:
-    build: 
+    build:
       context: ./problem-service
       args:
         KEYCLOAK_URL: ${KEYCLOAK_URL}
@@ -133,6 +133,51 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
-      
+  submission-database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${SUBMISSION_DB}
+      POSTGRES_USER: ${SUBMISSION_DB_USER}
+      POSTGRES_PASSWORD: ${SUBMISSION_DB_PASSWORD}
+    ports:
+      - ":5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d problem-service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+  submission:
+    build:
+      context: ./submission-service
+      args:
+        KEYCLOAK_URL: ${KEYCLOAK_URL}
+    environment:
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      SUBMISSION_DB: ${SUBMISSION_DB}
+      SUBMISSION_DB_USER: ${SUBMISSION_DB_USER}
+      SUBMISSION_DB_PASSWORD: ${SUBMISSION_DB_PASSWORD}
+    ports:
+      - "8082:8080"
+    depends_on:
+      keycloak:
+        condition: service_started
+      config:
+        condition: service_healthy
+      discovery:
+        condition: service_healthy
+      submission-database:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- https://localhost:8082/actuator/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
 volumes:
   postgres_data:

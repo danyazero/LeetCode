@@ -1,0 +1,20 @@
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://${KEYCLOAK_URL}/realms/leetcode
+  application:
+    name: submission
+  datasource:
+    username: ${SUBMISSION_DB_USER}
+    password: ${SUBMISSION_DB_PASSWORD}
+    url: jdbc:postgresql://submission-database:5432/${SUBMISSION_DB}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery:8761/eureka
+  instance:
+    prefer-ip-address: true
