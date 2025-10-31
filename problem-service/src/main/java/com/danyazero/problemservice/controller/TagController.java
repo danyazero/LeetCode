@@ -6,6 +6,7 @@ import com.danyazero.problemservice.model.TagDto;
 import com.danyazero.problemservice.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +16,7 @@ public class TagController {
     private final TagRepository tagRepository;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('problem.edit_tags')")
     public Tag createTopicTag(@RequestBody TagDto tagDto) {
         System.out.println(tagDto);
         var tagEntity = Tag.builder()
@@ -46,6 +48,7 @@ public class TagController {
     }
 
     @DeleteMapping("/{tagId}")
+    @PreAuthorize("hasAuthority('problem.edit_tags')")
     public void deleteById(@PathVariable int tagId) {
         tagRepository.deleteById(tagId);
     }

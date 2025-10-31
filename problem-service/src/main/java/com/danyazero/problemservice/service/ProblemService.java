@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class ProblemService {
@@ -20,6 +22,11 @@ public class ProblemService {
     public Problem createProblem(CreateProblemDto problem) {
 
         return problemRepository.save(problem.toEntity());
+    }
+
+    @Transactional
+    public void deleteProblem(Integer problemId) {
+        problemRepository.deleteById(problemId);
     }
 
     public Page<Problem> findProblems(String query, Integer tag, Integer difficulty, int page, int size) {

@@ -1,4 +1,35 @@
 services:
+  keycloak-database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    ports:
+      - ":5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command:
+      - start
+    ports:
+      - "8443:8443"
+    depends_on:
+      - keycloak-database
+    volumes:
+      - ${KEYCLOAK_CERTIFICATES_PATH}/:/etc/security/https/
+    environment:
+      KC_DB_URI_HOST: postgres
+      KC_DB_URI_DATABASE: ${KEYCLOAK_DB}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: https://${KEYCLOAK_URL}
+      KC_HOSTNAME_STRICT: false
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTPS_CERTIFICATE_FILE: /etc/security/https/cert.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/security/https/privkey.pem
   config:
     build: ./config-service
     ports:
@@ -60,9 +91,9 @@ services:
   problem-database:
     image: postgres:latest
     environment:
-      POSTGRES_USER: problem-database
-      POSTGRES_PASSWORD: problem-database
-      POSTGRES_DB: problem-service
+      POSTGRES_DB: ${PROBLEM_DB}
+      POSTGRES_USER: ${PROBLEM_DB_USER}
+      POSTGRES_PASSWORD: ${PROBLEM_DB_PASSWORD}
     ports:
       - "5432:5432"
     healthcheck:
@@ -72,10 +103,20 @@ services:
       retries: 3
       start_period: 5s
   problem:
-    build: ./problem-service
+    build: 
+      context: ./problem-service
+      args:
+        KEYCLOAK_URL: ${KEYCLOAK_URL}
+    environment:
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      PROBLEM_DB: ${PROBLEM_DB}
+      PROBLEM_DB_USER: ${PROBLEM_DB_USER}
+      PROBLEM_DB_PASSWORD: ${PROBLEM_DB_PASSWORD}
     ports:
       - "8081:8080"
     depends_on:
+      keycloak:
+        condition: service_started
       config:
         condition: service_healthy
       discovery:
@@ -86,44 +127,12 @@ services:
       test:
         [
           "CMD-SHELL",
-          "wget -qO- http://localhost:8081/actuator/health || exit 1",
+          "wget -qO- https://localhost:8081/actuator/health || exit 1",
         ]
       interval: 10s
       timeout: 10s
       retries: 3
       start_period: 5s
-  user-database:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: user-database
-      POSTGRES_PASSWORD: user-database
-      POSTGRES_DB: user-service
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d user-service"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-  user:
-    build: ./user-service
-    ports:
-      - "8082:8080"
-    depends_on:
-      config:
-        condition: service_healthy
-      discovery:
-        condition: service_healthy
-      user-database:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:8082/actuator/health || exit 1",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      
+volumes:
+  postgres_data:

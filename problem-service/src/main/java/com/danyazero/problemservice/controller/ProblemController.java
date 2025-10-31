@@ -1,11 +1,13 @@
 package com.danyazero.problemservice.controller;
 
 import com.danyazero.problemservice.entity.Problem;
+import com.danyazero.problemservice.exception.RequestException;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.CreateProblemDto;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.service.ProblemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +19,8 @@ public class ProblemController {
 
     @GetMapping("/{problemId}")
     public Problem getProblemById(@PathVariable Integer problemId) {
-        return repository.findById(problemId).orElseThrow();
+        return repository.findById(problemId)
+                .orElseThrow(() -> new RequestException("Problem with id " + problemId + " not found."));
     }
 
     @GetMapping
@@ -36,5 +39,10 @@ public class ProblemController {
     @PostMapping
     public Problem createProblem(@RequestBody CreateProblemDto problem) {
         return service.createProblem(problem);
+    }
+
+    @DeleteMapping("/{problemId}")
+    public void deleteProblem(@PathVariable Integer problemId) {
+        service.deleteProblem(problemId);
     }
 }
