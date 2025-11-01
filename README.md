@@ -3,6 +3,7 @@
 | :----------- | ------------------------ |
 | Backend      | Spring Boot, Spring Cloud|
 | Messaging    | Apache Kafka             |
+| SSO Provider | Keycloak                 |
 | Databases    | PostgreSQL               |
 | Storage      | MinIO                    |
 | Execution    | NSJail                   |
@@ -39,11 +40,10 @@ Built on an Event-Driven Architecture (EDA), this system implements loosely coup
   - Maintains active WebSocket connections with clients through the `API Gateway`.
   - Subscribes to the `Message Queue` to receive Evaluation events.
   - Sends real-time notifications to the corresponding users about their submission results.
-6. **User Service**
+6. **User Service (Keycloak)**
   - Manages user accounts, registration, and authentication data.
-  - Stores user profiles and credentials in User DB.
+  - Stores user profiles and credentials in related database.
   - Issues and refreshes authentication tokens.
-  - The `API Gateway` verifies tokens for incoming requests.
   - Provides APIs for other services that require user information.
 7. **Message Queue**
   - Serves as the central communication bus for all asynchronous events.
@@ -69,3 +69,19 @@ Tags, difficulties, and testcases are modular — each can evolve independently.
 | **`Tag`**         | Contains reusable tags (topics like `arrays`, `dp`, `graph`) that classify problems for search and filtering.                                                                      |
 | **`Problem_Tag`** | A many-to-many relation linking problems with multiple tags. Allows flexible topic categorization and efficient querying.                                                          |
 | **`Testcase`**    | References test files stored in S3 (or another object storage). Each testcase belongs to a single problem and is used by the Executor Service during code evaluation. |
+
+# Submission Service
+
+The Submission Service is responsible for managing the entire lifecycle of a code submission — from receiving and validating user code, storing it in the database and S3 storage, to triggering execution and tracking evaluation results.
+It publishes submission events to the message queue for asynchronous execution by the Executor Service, and updates the submission status upon receiving results from queue (EDA).
+
+### Database
+The schema is fully normalized (3NF), avoiding data duplication and ensuring referential integrity.
+
+<img width="3004" height="844" alt="LeetCode-Database-Submission-Service" src="https://github.com/user-attachments/assets/8c452a82-412d-4191-8b25-c71933fee737" />
+
+| Table               | Description                                                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`Language`**      | Contains information about all supported programming languages for submissions.                                                                                                    |
+| **`Submission`**    | The main table storing all user submissions. Each entry references the user, the problem, and the language used.                                                                   |
+| **`Events`**        | Tracks the lifecycle of each submission by recording state changes. This enables asynchronous monitoring and debugging of submission processing in message-driven environments.    |
