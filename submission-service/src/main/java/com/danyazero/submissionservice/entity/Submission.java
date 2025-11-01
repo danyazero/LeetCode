@@ -1,16 +1,21 @@
 package com.danyazero.submissionservice.entity;
 
+import com.danyazero.submissionservice.model.SubmissionStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "submission")
 public class Submission {
     @Id
@@ -24,15 +29,20 @@ public class Submission {
     @Column(name = "problem_id", nullable = false)
     private Integer problemId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "language_id", nullable = false)
     private Language language;
 
     @Column(name = "status", nullable = false, length = Integer.MAX_VALUE)
-    private String status;
+    private SubmissionStatus status;
 
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
+    @Column(name = "solution_path", nullable = false, length = Integer.MAX_VALUE)
+    private String solutionPath;
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Event> events;
 }

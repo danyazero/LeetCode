@@ -1,0 +1,1 @@
+ALTER TABLE "public"."submission" ADD COLUMN "solution_path" text NOT NULL;

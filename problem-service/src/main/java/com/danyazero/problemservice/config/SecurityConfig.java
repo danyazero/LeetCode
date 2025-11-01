@@ -19,13 +19,13 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/difficulties").hasAuthority("problem.edit_difficulties")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/difficulties/").hasAuthority("problem.edit_difficulties")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/difficulties/*").hasAuthority("problem.edit_difficulties")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/problems").hasAuthority("problem.edit_problems")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/problems/").hasAuthority("problem.edit_problems")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/problems/*").hasAuthority("problem.edit_problems")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/tags").hasAuthority("problem.edit_tags")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/").hasAuthority("problem.edit_tags")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/*").hasAuthority("problem.edit_tags")
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 ->
@@ -40,6 +40,7 @@ public class SecurityConfig {
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(new KeycloakJwtConverter());
+        converter.setPrincipalClaimName("sub");
 
         return converter;
     }
