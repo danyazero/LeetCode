@@ -1,10 +1,8 @@
 package com.danyazero.submissionservice.service;
 
 import com.danyazero.submissionservice.entity.Event;
-import com.danyazero.submissionservice.entity.Language;
 import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.exception.RequestException;
-import com.danyazero.submissionservice.model.PageDto;
 import com.danyazero.submissionservice.model.SubmissionDto;
 import com.danyazero.submissionservice.model.SubmissionStatus;
 import com.danyazero.submissionservice.repository.EventRepository;
@@ -17,8 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
 import java.time.Instant;
-import java.util.List;
+import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +25,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
+    private final SolutionStorageService solutionStorageService;
     private final SubmissionRepository submissionRepository;
     private final LanguageRepository languageRepository;
     private final EventRepository eventRepository;
@@ -45,16 +45,18 @@ public class SubmissionService {
         var language = languageRepository.findById(submissionDto.languageId())
                 .orElseThrow(() -> new RequestException("Language with id " + submissionDto.languageId() + " not found."));
 
+        var solution = new ByteArrayInputStream(submissionDto.solution().getBytes());
+        var filename = userId.toString() + "_" + getBase64Timestamp() + ".txt";
+        solutionStorageService.uploadSolution(filename, solution);
+
         var submission = Submission.builder()
-                .solutionPath("/some/generated/solution.txt")
+                .solutionPath(filename)
                 .problemId(submissionDto.problemId())
                 .status(SubmissionStatus.CREATED)
                 .createdAt(Instant.now())
                 .language(language)
                 .userId(userId)
                 .build();
-
-
 
         var createdSubmission = submissionRepository.save(submission);
 
@@ -69,5 +71,9 @@ public class SubmissionService {
         );
 
         return createdSubmission;
+    }
+
+    private static String getBase64Timestamp() {
+        return Base64.getEncoder().encodeToString(Instant.now().toString().getBytes());
     }
 }
