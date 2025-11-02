@@ -40,8 +40,11 @@ public class Submission {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "solution_path", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "solution_path", length = Integer.MAX_VALUE)
     private String solutionPath;
+
+    @Column(name = "idempotency_key", nullable = false)
+    private UUID idempotencyKey;
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Event> events;
