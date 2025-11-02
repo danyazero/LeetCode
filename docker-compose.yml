@@ -9,6 +9,12 @@ services:
       - ":5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER} -d ${KEYCLOAK_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     command:
@@ -97,11 +103,12 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d problem-service"]
+      test: ["CMD-SHELL", "pg_isready -U ${PROBLEM_DB_USER} -d ${PROBLEM_DB}"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
+
   problem:
     build:
       context: ./problem-service
@@ -142,7 +149,7 @@ services:
     ports:
       - ":5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d problem-service"]
+      test: ["CMD-SHELL", "pg_isready -U ${SUBMISSION_DB_USER} -d ${SUBMISSION_DB}"]
       interval: 10s
       timeout: 5s
       retries: 3
