@@ -1,4 +1,4 @@
-FROM openjdk:24-slim
+FROM openjdk:26-ea-slim-trixie
 
 RUN apt-get update && apt-get install -y --no-install-recommends\
     git \

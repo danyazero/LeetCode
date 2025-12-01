@@ -15,7 +15,6 @@ import java.util.List;
 public class ProcessConfig {
     @Builder.Default
     private ExecutionMode executionMode = ExecutionMode.STANDALONE_ONCE;
-    private int timeLimit;
     @Builder.Default
     private int asLimit = 4096;
     @Builder.Default
@@ -50,8 +49,8 @@ public class ProcessConfig {
             config.add(String.join(" ", env));
         }
 
-        config.add("--time_limit");
-        config.add(String.valueOf(timeLimit));
+//        config.add("--time_limit");
+//        config.add(String.valueOf(timeLimit));
 
         config.add("--rlimit_as");
         config.add(String.valueOf(asLimit));

@@ -11,6 +11,4 @@ import java.util.UUID;
 
 public interface SubmissionRepository extends JpaRepository<Submission, Integer> {
     Page<Submission> findAllByProblemIdAndUserId(Integer problemId, UUID userId, Pageable pageable);
-
-    Optional<Submission> findFirstByUserIdAndIdempotencyKey(UUID userId, UUID idempotencyKey);
 }

@@ -10,11 +10,13 @@ import java.util.Set;
 public record CreateProblemDto(
         String title,
         String description,
+        String methodSchema,
         Difficulty difficulty,
         Set<Tag> tags
 ) {
     public Problem toEntity() {
         return Problem.builder()
+                .methodSchema(this.methodSchema)
                 .description(this.description)
                 .difficulty(this.difficulty)
                 .createdAt(Instant.now())

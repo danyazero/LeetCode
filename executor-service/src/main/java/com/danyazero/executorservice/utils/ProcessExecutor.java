@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 @RequiredArgsConstructor
-public class ProcessExecutor implements BiFunction<Path, List<String>, Process> {
+public class ProcessExecutor {
     private final ProcessConfig processConfig;
 
-    @Override
-    public Process apply(Path processRoot, List<String> command) {
+    public Process execute(Path processRoot, List<String> command, int timeLimit) {
         var process = new ProcessBuilder(
                 "nsjail",
                 "--user", "nobody",
@@ -24,6 +23,10 @@ public class ProcessExecutor implements BiFunction<Path, List<String>, Process> 
         if (processRoot != null) process.command().addAll(List.of("--chroot", processRoot.toString()));
 
         process.command().addAll(processConfig.getConfig());
+
+        process.command().add("--time_limit");
+        process.command().add(timeLimit + "");
+
         process.command().add("--");
         process.command().addAll(command);
 

@@ -26,7 +26,7 @@ public class Event {
     @JoinColumn(name = "submission_id", nullable = false)
     private Submission submission;
 
-    @Column(name = "status", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "status", nullable = false)
     private SubmissionStatus status;
 
     @ColumnDefault("now()")

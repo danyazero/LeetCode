@@ -1,29 +1,25 @@
 package com.danyazero.submissionservice.service;
 
+import com.danyazero.submissionservice.client.ProblemClient;
 import com.danyazero.submissionservice.entity.Event;
 import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.exception.RequestException;
+import com.danyazero.submissionservice.model.SubmissionCreatedEvent;
 import com.danyazero.submissionservice.model.SubmissionDto;
+import com.danyazero.submissionservice.model.SubmissionCreatedEventDto;
 import com.danyazero.submissionservice.model.SubmissionStatus;
 import com.danyazero.submissionservice.repository.EventRepository;
 import com.danyazero.submissionservice.repository.LanguageRepository;
 import com.danyazero.submissionservice.repository.SubmissionRepository;
-import io.minio.GetObjectResponse;
-import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,10 +27,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
-    private final SolutionStorageService solutionStorageService;
+    private final KafkaTemplate<String, SubmissionCreatedEvent> submissionKafkaTemplate;
     private final SubmissionRepository submissionRepository;
     private final LanguageRepository languageRepository;
     private final EventRepository eventRepository;
+    private final ProblemClient problemClient;
 
     public Submission findBySubmissionId(int id) {
         return submissionRepository.findById(id)
@@ -42,80 +39,85 @@ public class SubmissionService {
     }
 
     public Page<Submission> findByProblemId(int problemId, UUID userId, Pageable pageable) {
-
         return submissionRepository.findAllByProblemIdAndUserId(problemId, userId, pageable);
+    }
+
+    public void updateSubmissionStatus(
+            Integer submissionId,
+            SubmissionStatus submissionStatus
+    ) {
+        var submission = findBySubmissionId(submissionId);
+        submission.setStatus(submissionStatus);
+        submissionRepository.save(submission);
+
+        var submissionEvent = Event.builder()
+                .status(submissionStatus)
+                .createdAt(Instant.now())
+                .submission(submission)
+                .build();
+        eventRepository.save(submissionEvent);
     }
 
     @Transactional
     public Submission createSubmission(
-            UUID idempotencyKey,
             UUID userId,
             SubmissionDto submissionDto
     ) {
         var language = languageRepository.findById(submissionDto.languageId())
                 .orElseThrow(() -> new RequestException("Language with id " + submissionDto.languageId() + " not found."));
 
-        var submissionExist = submissionRepository.findFirstByUserIdAndIdempotencyKey(userId, idempotencyKey);
-        if (submissionExist.isPresent()) {
-            log.info("Submission with id {} already exist.", submissionExist.get().getId());
-            return submissionExist.get();
-        }
-
         var submission = Submission.builder()
                 .problemId(submissionDto.problemId())
+                .solution(submissionDto.solution())
                 .status(SubmissionStatus.CREATED)
-                .idempotencyKey(idempotencyKey)
                 .createdAt(Instant.now())
                 .language(language)
                 .userId(userId)
                 .build();
 
         var createdSubmission = submissionRepository.save(submission);
-
-        var solutionPath = saveUserSolution(
-                createdSubmission.getId(),
-                userId,
-                submissionDto.solution()
-        );
-        createdSubmission.setSolutionPath(solutionPath);
-        submissionRepository.save(createdSubmission);
+        log.info("Submission with id {} has been created.", createdSubmission.getId());
 
         var submissionEvent = Event.builder()
-                .submission(createdSubmission)
                 .status(SubmissionStatus.CREATED)
+                .submission(createdSubmission)
                 .createdAt(Instant.now())
                 .build();
+
+        var problem = problemClient.getProblemById(submissionDto.problemId());
+
+        var eventData = SubmissionCreatedEventDto.builder()
+                .submissionId(createdSubmission.getId())
+                .solution(submissionDto.solution())
+                .language(language.getLanguage())
+                .problemId(problem.id())
+                .build();
+
+        produceSubmissionCreatedEvent(eventData);
 
         createdSubmission.setEvents(
                 Set.of(eventRepository.save(submissionEvent))
         );
 
+        log.info("Submission CREATED event has been saved.");
+
         return createdSubmission;
     }
 
-    public GetObjectResponse getSolutionByFilename(String filename) {
-        try {
-            return solutionStorageService.getSolution(filename);
-        } catch (Exception e) {
-            throw new RequestException("An error occurred while trying to get solution by filename");
-        }
-    }
+    private void produceSubmissionCreatedEvent(SubmissionCreatedEventDto eventData) {
 
-    private String saveUserSolution(int id, UUID userId, String solution) {
-        var solutionStream = new ByteArrayInputStream(solution.getBytes());
-        var filename = getSolutionFilename(id, userId);
-        try {
-            solutionStorageService.uploadSolution(filename + ".txt", solutionStream);
-
-            return filename;
-        } catch (Exception e) {
-            throw new RequestException("An error occurred, while saving user solution.");
-        }
-    }
-
-    private static String getSolutionFilename(Integer id, UUID userId) {
-        var content = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8)) + "_" + userId.toString();
-
-        return Base64.getUrlEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8));
+        var submissionCreatedEvent = new SubmissionCreatedEvent(
+                SubmissionStatus.CREATED.getValue(),
+                1,
+                eventData
+        );
+        submissionKafkaTemplate.sendDefault(
+                submissionCreatedEvent
+        ).thenAccept(res ->
+                log.info(
+                        "Submission CREATED event {} has been produced. (topic={})",
+                        submissionCreatedEvent.getEventId(),
+                        res.getRecordMetadata().topic()
+                ));
     }
 }

@@ -11,6 +11,8 @@ spring:
     username: ${SUBMISSION_DB_USER}
     password: ${SUBMISSION_DB_PASSWORD}
     url: jdbc:postgresql://submission-database:5432/${SUBMISSION_DB}
+kafka:
+  bootstrap-servers-config: kafka:9092
 
 eureka:
   client:
@@ -18,10 +20,3 @@ eureka:
       defaultZone: http://discovery:8761/eureka
   instance:
     prefer-ip-address: true
-    
-minio:
-  url: http://minio-storage:9000
-  access:
-    name: ${MINIO_USER}
-    secret: ${MINIO_PASSWORD}
-  bucket: leetcode-solutions

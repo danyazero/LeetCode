@@ -27,16 +27,6 @@ public class SubmissionController {
         return submissionService.findBySubmissionId(submissionId);
     }
 
-    @GetMapping("/file/{filename}")
-    public byte[] getSolutionFile(@PathVariable String filename) {
-        var solutionResponse = submissionService.getSolutionByFilename(filename + ".txt");
-        try {
-            return solutionResponse.readAllBytes();
-        } catch (IOException e) {
-            throw new RequestException("An error occurred while trying to get solution file.");
-        }
-    }
-
     @GetMapping("/problem/{problemId}")
     public PageDto<Submission> getProblemSubmissions(
             @PathVariable Integer problemId,
@@ -53,13 +43,11 @@ public class SubmissionController {
 
     @PostMapping
     public Submission createSubmission(
-            @RequestHeader(value = "Idempotency-Key") UUID idempotencyKey,
             @RequestBody SubmissionDto submissionDto,
             Principal principal
     ) {
-        if (idempotencyKey == null) throw new IdempotencyKeyException("This request requires an idempotency key.");
         var userId = UUID.fromString(principal.getName());
 
-        return submissionService.createSubmission(idempotencyKey, userId, submissionDto);
+        return submissionService.createSubmission(userId, submissionDto);
     }
 }

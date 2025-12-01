@@ -1,4 +1,4 @@
-package com.danyazero.submissionservice.model;
+package com.danyazero.executorservice.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

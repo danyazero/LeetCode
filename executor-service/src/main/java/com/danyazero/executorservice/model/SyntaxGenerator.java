@@ -1,27 +1,19 @@
 package com.danyazero.executorservice.model;
 
 public interface SyntaxGenerator {
-    String nullValue();
-    String getImports();
-    String start(String content);
-    String arrayType(String type);
-    String invokeAndPrint(MethodSchema schema);
+    String nullValueToken();
+    String visitArrayType(String type);
+    String visitFunctionArgs(Type[] args);
     String getVariableType(SchemaType type);
-    String methodInvoke(MethodSchema schema);
-    String generateArgsArray(int requiredSize);
-    String wrapper(String className, String content);
-    String function(MethodSchema schema, String content);
-    String castFromString(Type toType, String into, String from);
+    String visitWrapper(String className, String content);
+    String visitFunctionDeclaration(MethodSchema schema, String content);
 
-    default String start(String... content) {
-        return this.start(String.join("\n", content));
-    }
 
     default String typeToString(Type type) {
         if (type instanceof PrimitiveType(SchemaType schemaType)) {
             return this.getVariableType(schemaType);
         } else if (type instanceof ArrayType(Type elementType)) {
-            return arrayType(typeToString(elementType));
+            return visitArrayType(typeToString(elementType));
         }
         throw new IllegalArgumentException("Unknown type: " + type);
     }
@@ -37,7 +29,6 @@ public interface SyntaxGenerator {
             };
         }
 
-        return this.nullValue();
+        return this.nullValueToken();
     }
-
 }

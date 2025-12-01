@@ -7,7 +7,6 @@ import com.danyazero.problemservice.model.CreateProblemDto;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.service.ProblemService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

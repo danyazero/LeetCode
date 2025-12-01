@@ -26,6 +26,9 @@ public class Problem {
     @Column(name = "description", nullable = false, length = Integer.MAX_VALUE)
     private String description;
 
+    @Column(name = "method_schema", nullable = false, length = Integer.MAX_VALUE)
+    private String methodSchema;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "difficulty_id", nullable = false)
     private Difficulty difficulty;

@@ -1,7 +1,6 @@
 package com.danyazero.submissionservice.entity;
 
 import com.danyazero.submissionservice.model.SubmissionStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -33,18 +32,15 @@ public class Submission {
     @JoinColumn(name = "language_id", nullable = false)
     private Language language;
 
-    @Column(name = "status", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "status", nullable = false)
     private SubmissionStatus status;
 
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "solution_path", length = Integer.MAX_VALUE)
-    private String solutionPath;
-
-    @Column(name = "idempotency_key", nullable = false)
-    private UUID idempotencyKey;
+    @Column(name = "solution", length = Integer.MAX_VALUE)
+    private String solution;
 
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Event> events;
