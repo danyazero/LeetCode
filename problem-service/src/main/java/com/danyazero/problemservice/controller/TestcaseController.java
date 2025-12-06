@@ -6,7 +6,6 @@ import com.danyazero.problemservice.model.TestcaseDto;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.repository.TestcaseRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +25,13 @@ public class TestcaseController {
         return testcaseRepository.save(testcaseDto.toEntity(problem));
     }
 
+    @DeleteMapping("/{testcaseId}")
+    public void deleteTestcase(@PathVariable Integer testcaseId) {
+        testcaseRepository.deleteById(testcaseId);
+    }
+
     @GetMapping("/{problemId}")
     public List<Testcase> getTestcases(@PathVariable Integer problemId) {
-        return testcaseRepository.getAllByProblem_Id(problemId, Pageable.ofSize(5));
+        return testcaseRepository.getAllByProblem_Id(problemId);
     }
 }

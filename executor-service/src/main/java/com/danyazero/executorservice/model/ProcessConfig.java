@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class ProcessConfig {
     private boolean iFaceNoLo = true;
     @Builder.Default
     private boolean verbose = false;
+    private Path workingDirectory;
     private List<String> mounts_rw;
     private List<String> mounts_ro;
     private List<String> env;

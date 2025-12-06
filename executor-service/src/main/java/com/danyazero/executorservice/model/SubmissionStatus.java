@@ -9,6 +9,7 @@ public enum SubmissionStatus {
     CREATED("created"),
     QUEUED("queued"),
     RUNNING("running"),
+    UNSUPPORTED_LANGUAGE("running"),
     COMPILATION_ERROR("compilationError"),
     COMPILED("compiled"),
     TIME_LIMIT_EXCEEDED("timeLimitExceeded"),

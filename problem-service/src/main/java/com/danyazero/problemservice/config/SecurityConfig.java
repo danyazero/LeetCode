@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/*").hasAuthority("problem.edit_tags")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
 
                         .anyRequest().permitAll()
                 )

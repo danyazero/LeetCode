@@ -8,9 +8,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SubmissionCreatedEvent extends Event {
-    private SubmissionCreatedEventDto data;
+    private SubmissionCreated data;
 
-    public SubmissionCreatedEvent(Integer eventVersion, SubmissionCreatedEventDto data) {
+    public SubmissionCreatedEvent(Integer eventVersion, SubmissionCreated data) {
         super("submissionCreated", eventVersion);
         this.data = data;
     }

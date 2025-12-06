@@ -1,6 +1,5 @@
 package com.danyazero.submissionservice.service;
 
-import com.danyazero.submissionservice.client.ProblemClient;
 import com.danyazero.submissionservice.entity.Event;
 import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.exception.RequestException;
@@ -31,7 +30,6 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final LanguageRepository languageRepository;
     private final EventRepository eventRepository;
-    private final ProblemClient problemClient;
 
     public Submission findBySubmissionId(int id) {
         return submissionRepository.findById(id)
@@ -84,13 +82,11 @@ public class SubmissionService {
                 .createdAt(Instant.now())
                 .build();
 
-        var problem = problemClient.getProblemById(submissionDto.problemId());
-
         var eventData = SubmissionCreatedEventDto.builder()
                 .submissionId(createdSubmission.getId())
+                .problemId(submissionDto.problemId())
                 .solution(submissionDto.solution())
                 .language(language.getLanguage())
-                .problemId(problem.id())
                 .build();
 
         produceSubmissionCreatedEvent(eventData);

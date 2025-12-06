@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TestcaseRepository extends JpaRepository<Testcase, Integer> {
-    List<Testcase> getAllByProblem_Id(Integer problemId, Pageable pageable);
+    List<Testcase> getAllByProblem_Id(Integer problemId);
 }

@@ -34,7 +34,7 @@ public class Testcase {
     private String input;
 
     @Column(name = "output", nullable = false, length = Integer.MAX_VALUE)
-    private String output;
+    private String expected;
 
     @JsonProperty("problem_id")
     public Integer getProblemId() {

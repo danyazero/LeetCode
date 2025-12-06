@@ -1,8 +1,6 @@
 package com.danyazero.executorservice.model;
 
-import java.time.Instant;
-
-public record SubmissionUpdatedEventDto(
+public record SubmissionUpdated(
         Integer submissionId,
         SubmissionStatus submissionStatus
 ) {

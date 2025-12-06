@@ -1,7 +1,7 @@
 package com.danyazero.executorservice.config;
 
 import com.danyazero.executorservice.model.SubmissionCreatedEvent;
-import com.danyazero.executorservice.model.SubmissionCreatedEventDto;
+import com.danyazero.executorservice.model.SubmissionCreated;
 import com.danyazero.executorservice.model.SubmissionUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class KafkaConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TYPE_MAPPINGS, getCompiledMapper(SubmissionCreatedEvent.class, SubmissionCreatedEventDto.class));
+        props.put(JsonDeserializer.TYPE_MAPPINGS, getCompiledMapper(SubmissionCreatedEvent.class, SubmissionCreated.class));
 
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(SubmissionCreatedEvent.class));
     }
