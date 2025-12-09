@@ -4,3 +4,8 @@ server:
 spring:
   application:
     name: eureka
+    
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false

@@ -1,0 +1,1 @@
+ALTER TABLE "public"."testcase" ADD COLUMN "is_public" boolean NOT NULL DEFAULT 'false';

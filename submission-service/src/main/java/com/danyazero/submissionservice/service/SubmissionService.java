@@ -3,10 +3,7 @@ package com.danyazero.submissionservice.service;
 import com.danyazero.submissionservice.entity.Event;
 import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.exception.RequestException;
-import com.danyazero.submissionservice.model.SubmissionCreatedEvent;
-import com.danyazero.submissionservice.model.SubmissionDto;
-import com.danyazero.submissionservice.model.SubmissionCreatedEventDto;
-import com.danyazero.submissionservice.model.SubmissionStatus;
+import com.danyazero.submissionservice.model.*;
 import com.danyazero.submissionservice.repository.EventRepository;
 import com.danyazero.submissionservice.repository.LanguageRepository;
 import com.danyazero.submissionservice.repository.SubmissionRepository;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,8 +34,14 @@ public class SubmissionService {
                 .orElseThrow(() -> new RequestException("Submission with id " + id + " not found."));
     }
 
-    public Page<Submission> findByProblemId(int problemId, UUID userId, Pageable pageable) {
-        return submissionRepository.findAllByProblemIdAndUserId(problemId, userId, pageable);
+    public SubmissionsResponse findByProblemId(int problemId, UUID userId, Pageable pageable) {
+        final var submissions = submissionRepository.findAllByProblemIdAndUserIdOrderByIdDesc(problemId, userId, pageable);
+        final var isAccepted = submissionRepository.existsSubmissionByUserIdAndStatus(userId, SubmissionStatus.ACCEPTED);
+
+        return SubmissionsResponse.builder()
+                .submissions(castSubmissionsPage(submissions))
+                .isAccepted(isAccepted)
+                .build();
     }
 
     public void updateSubmissionStatus(
@@ -115,5 +119,21 @@ public class SubmissionService {
                         submissionCreatedEvent.getEventId(),
                         res.getRecordMetadata().topic()
                 ));
+    }
+
+    private PageDto<SubmissionResponseDto> castSubmissionsPage(Page<Submission> submissions) {
+        List<SubmissionResponseDto> content = submissions.getContent()
+                .stream()
+                .map(SubmissionResponseDto::from)
+                .toList();
+
+        return PageDto.<SubmissionResponseDto>builder()
+                .pageNumber(submissions.getPageable().getPageNumber())
+                .pageSize(submissions.getPageable().getPageSize())
+                .totalPages(submissions.getTotalPages())
+                .isFirst(submissions.isFirst())
+                .isLast(submissions.isLast())
+                .content(content)
+                .build();
     }
 }

@@ -36,6 +36,9 @@ public class Testcase {
     @Column(name = "output", nullable = false, length = Integer.MAX_VALUE)
     private String expected;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
+
     @JsonProperty("problem_id")
     public Integer getProblemId() {
         return problem != null ? problem.getId() : null;

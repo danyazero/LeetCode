@@ -4,6 +4,7 @@ import com.danyazero.problemservice.entity.Problem;
 import com.danyazero.problemservice.exception.RequestException;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.CreateProblemDto;
+import com.danyazero.problemservice.model.ProblemResponse;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.service.ProblemService;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,8 @@ public class ProblemController {
     private final ProblemService service;
 
     @GetMapping("/{problemId}")
-    public Problem getProblemById(@PathVariable Integer problemId) {
-        return repository.findById(problemId)
-                .orElseThrow(() -> new RequestException("Problem with id " + problemId + " not found."));
+    public ProblemResponse getProblemById(@PathVariable Integer problemId) {
+        return service.getProblemById(problemId);
     }
 
     @GetMapping

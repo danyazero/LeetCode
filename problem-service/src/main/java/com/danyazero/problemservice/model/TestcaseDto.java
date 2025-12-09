@@ -18,4 +18,12 @@ public record TestcaseDto(
                 .problem(problem)
                 .build();
     }
+
+    public static TestcaseDto toDto(Testcase testcase) {
+        return new TestcaseDto(
+                testcase.getInput(),
+                testcase.getExpected(),
+                testcase.getProblemId()
+        );
+    }
 }

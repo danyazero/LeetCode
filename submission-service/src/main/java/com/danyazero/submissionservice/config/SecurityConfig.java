@@ -18,7 +18,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/submissions").hasAuthority("submission.send_submissions")
                         .requestMatchers(HttpMethod.GET, "/api/v1/submissions/*").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/submissions/file/*").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/submissions/problem/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/submissions/problems/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
