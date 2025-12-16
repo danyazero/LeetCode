@@ -7,7 +7,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://${KEYCLOAK_URL}/realms/leetcode
+          issuer-uri: http://${KEYCLOAK_URL}:8080/realms/leetcode
   application:
     name: problem
   datasource:

@@ -1,3 +1,11 @@
+#server:
+#  port: 8443
+#  ssl:
+#    enabled: true
+#    key-store: classpath:ucode.com.p12
+#    key-store-type: PKCS12
+#    key-store-password: ${CERTIFICATE_PASSWORD}
+#
 spring:
   application:
     name: gateway-service
@@ -6,29 +14,45 @@ spring:
       server:
         webflux:
           routes:
-            - id: problem-service-tags
-              uri: lb://problem
+            - id: frontend
+              uri: http://frontend:3000
               predicates:
-                - Path=/api/*/tags/**
-            - id: problem-service-problems
-              uri: lb://problem
-              predicates:
-                - Path=/api/*/problems/**
+                - Host=ucode.com
               metadata:
                 cors:
-                  allowedOrigins: 'http://localhost:3000'
+                  allowedOrigins: 'http://ucode.com'
                   allowedMethods:
                     - GET
                     - POST
                   allowedHeaders: '*'
-            - id: submission-service-submissions
+            - id: keycloak
+              uri: http://keycloak:8080
+              predicates:
+                - Host=auth.ucode.com
+            - id: problem-service
+              uri: lb://problem
+              predicates:
+                - Host=problem.ucode.com
+                - Path=/api/**
+              metadata:
+                cors:
+                  allowedOrigins: 'http://ucode.com'
+                  allowedMethods:
+                    - GET
+                    - POST
+                  allowedHeaders: '*'
+            - id: submission-service
               uri: lb://submission
               predicates:
-                - Path=/api/*/submissions/**
-            - id: submission-service-languages
-              uri: lb://submission
-              predicates:
-                - Path=/api/*/languages/**
+                - Host=submission.ucode.com
+                - Path=/api/**
+              metadata:
+                cors:
+                  allowedOrigins: 'http://ucode.com'
+                  allowedMethods:
+                    - GET
+                    - POST
+                  allowedHeaders: '*'
 eureka:
   client:
     service-url:
