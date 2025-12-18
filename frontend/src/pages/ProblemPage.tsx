@@ -1,14 +1,11 @@
+import type { SubmissionsResponse } from "@/App";
 import { ProblemTag } from "@/shared/ProblemTag";
-import { Tag } from "@/shared/Tag";
 import { Example } from "@/widget/Example";
+import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
 import { Window } from "@/widget/Window";
-import { useEffect } from "react";
-import {
-  IoArrowUpCircleOutline,
-  IoCodeSlash,
-  IoDocumentTextOutline,
-} from "react-icons/io5";
-import { LuChartPie } from "react-icons/lu";
+import { FaSignal } from "react-icons/fa6";
+import { IoCodeSlash, IoDocumentTextOutline } from "react-icons/io5";
+import { MdOutlineSignalCellularAlt } from "react-icons/md";
 import { useLoaderData } from "react-router";
 
 export interface IProblem {
@@ -30,16 +27,25 @@ export interface ITestcase {
   expected: string;
 }
 
+export interface ProblemData {
+  problem: IProblem;
+  submissions: SubmissionsResponse | null;
+}
+
 export const ProblemPage = () => {
-  const { data }: { data: IProblem } = useLoaderData();
+  const data = useLoaderData<IProblem>();
+
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="flex flex-col px-6">
+    <div className="flex flex-col px-6 h-screen">
       <div className="flex flex-row py-5 gap-4 items-center">
         <ProblemTag id={data.id} isCompleted={true} />
         <p className="text-base font-medium">{data.title}</p>
       </div>
-      <div className="flex flex-row gap-2 w-full">
+      <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
         <Window icon={IoDocumentTextOutline} title="Statement">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
@@ -61,9 +67,19 @@ export const ProblemPage = () => {
           </div>
         </Window>
 
-        <Window icon={IoCodeSlash} title="Editor">
-          <></>
-        </Window>
+        <div className="flex flex-col w-full gap-2">
+          <Window icon={IoCodeSlash} title="Editor" loginRequired>
+            <></>
+          </Window>
+
+          <Window
+            icon={MdOutlineSignalCellularAlt}
+            title="Testing"
+            loginRequired
+          >
+            <ProblemSubmissions problemId={data.id} />
+          </Window>
+        </div>
       </div>
     </div>
   );

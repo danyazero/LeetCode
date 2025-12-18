@@ -1,11 +1,3 @@
-#server:
-#  port: 8443
-#  ssl:
-#    enabled: true
-#    key-store: classpath:ucode.com.p12
-#    key-store-type: PKCS12
-#    key-store-password: ${CERTIFICATE_PASSWORD}
-#
 spring:
   application:
     name: gateway-service
@@ -17,10 +9,10 @@ spring:
             - id: frontend
               uri: http://frontend:3000
               predicates:
-                - Host=ucode.com
+                - Host=localhost
               metadata:
                 cors:
-                  allowedOrigins: 'http://ucode.com'
+                  allowedOrigins: 'http://localhost'
                   allowedMethods:
                     - GET
                     - POST
@@ -29,6 +21,15 @@ spring:
               uri: http://keycloak:8080
               predicates:
                 - Host=auth.ucode.com
+              metadata:
+                cors:
+                  allowedOrigins: "http://localhost"
+                  allowedMethods:
+                    - GET
+                    - POST
+                    - OPTIONS
+                  allowedHeaders: "*"
+                  allowCredentials: true
             - id: problem-service
               uri: lb://problem
               predicates:
@@ -36,7 +37,7 @@ spring:
                 - Path=/api/**
               metadata:
                 cors:
-                  allowedOrigins: 'http://ucode.com'
+                  allowedOrigins: 'http://localhost'
                   allowedMethods:
                     - GET
                     - POST
@@ -48,7 +49,7 @@ spring:
                 - Path=/api/**
               metadata:
                 cors:
-                  allowedOrigins: 'http://ucode.com'
+                  allowedOrigins: 'http://localhost'
                   allowedMethods:
                     - GET
                     - POST
