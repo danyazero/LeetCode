@@ -2,16 +2,18 @@
 | Component    | Primary Technologies     |
 | :----------- | ------------------------ |
 | Backend      | Spring Boot, Spring Cloud|
+| Infra        | Docker Compose           |
 | Messaging    | Apache Kafka             |
 | SSO Provider | Keycloak                 |
 | Databases    | PostgreSQL               |
-| Storage      | MinIO                    |
 | Execution    | NSJail                   |
+| Frontend     | React, Tailwind          |
 
 # System Architecture
 Built on an Event-Driven Architecture (EDA), this system implements loosely coupled microservices for maximum agility and independent scaling. All core operations are handled asynchronously using a Message Queue, which guarantees system resilience and enables real-time notifications for user feedback.
 
-<img width="3912" height="2019" alt="LeetCode-System-Design-2" src="https://github.com/user-attachments/assets/ad28293f-f985-48ae-a103-55737506820b" />
+
+<img width="3912" height="2019" alt="LeetCode-System-Design" src="https://github.com/user-attachments/assets/b786e33b-6026-4691-8ad7-7e7897c9f7f7" />
 
 
 > [!NOTE]
@@ -78,7 +80,8 @@ It publishes submission events to the message queue for asynchronous execution b
 ### Database
 The schema is fully normalized (3NF), avoiding data duplication and ensuring referential integrity.
 
-<img width="3004" height="844" alt="LeetCode-Database-Submission-Service" src="https://github.com/user-attachments/assets/8c452a82-412d-4191-8b25-c71933fee737" />
+<img width="767" height="441" alt="LeetCode-Database-Problem-Service" src="https://github.com/user-attachments/assets/93d08750-4218-4a29-a4f1-191a278a1f36" />
+
 
 | Table               | Description                                                                                                                                                                        |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
