@@ -88,3 +88,8 @@ The schema is fully normalized (3NF), avoiding data duplication and ensuring ref
 | **`Language`**      | Contains information about all supported programming languages for submissions.                                                                                                    |
 | **`Submission`**    | The main table storing all user submissions. Each entry references the user, the problem, and the language used.                                                                   |
 | **`Events`**        | Tracks the lifecycle of each submission by recording state changes. This enables asynchronous monitoring and debugging of submission processing in message-driven environments.    |
+
+# Screenshots
+<img width="1403" height="1017" alt="image" src="https://github.com/user-attachments/assets/5be3201a-45d1-49ba-9e74-c2e08dc61db9" />
+<img width="1400" height="1018" alt="image" src="https://github.com/user-attachments/assets/fbaf353e-964e-43dd-80a7-801c39af6afa" />
+
