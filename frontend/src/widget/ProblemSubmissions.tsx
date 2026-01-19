@@ -1,45 +1,16 @@
 import type { SubmissionsResponse } from "@/App";
 import { keycloakContext } from "@/features/KeycloakWrapper";
 import axios, { AxiosError } from "axios";
-import { useEffect, useState, type ReactNode } from "react";
-import { Window } from "./Window";
-import { AiFillSignal } from "react-icons/ai";
+import { useEffect, useState } from "react";
 import { Spinner } from "@/shared/Spinner";
 import { Submission } from "@/shared/Submission";
 import { Error, RequestError, type ErrorInfo } from "./Error";
+import { useQuery } from "@/features/QueryHook";
 
 export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ErrorInfo>();
-  const [submissions, setSubmissions] = useState<SubmissionsResponse>();
-
-  useEffect(() => {
-    setLoading(true);
-    axios
-      .get<SubmissionsResponse>(
-        `http://submission.ucode.com/api/v1/submissions/problems/${problemId}?size=3`,
-        {
-          headers: {
-            Authorization: `Bearer ${keycloakContext.token}`,
-          },
-        },
-      )
-      .then((response) => {
-        if (response.status == 200) {
-          setSubmissions(response.data);
-        } else {
-          setError(RequestError.UNKNOWN);
-        }
-      })
-      .catch((error: AxiosError) => {
-        if (error.status == 401) {
-          setError(RequestError.UNAUTHORIZED);
-        } else {
-          setError(RequestError.UNKNOWN);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { loading, submissions, error } = useQuery(
+    `http://submission.ucode.com/api/v1/submissions/problems/${problemId}?size=${10}`,
+  );
 
   return (
     <div className="flex flex-col gap-4">

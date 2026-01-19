@@ -25,7 +25,7 @@ export const Window = (props: WindowProps) => {
       <div className="flex flex-row w-full bg-foreground rounded-t-lg">
         <Tab icon={props.icon} text={props.title} isActive />
       </div>
-      <div className="px-4 py-4 overflow-y-auto h-full">{props.children}</div>
+      <>{props.children}</>
     </div>
   );
 };

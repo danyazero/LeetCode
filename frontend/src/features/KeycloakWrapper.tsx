@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 export const keycloakContext = new Keycloak({
   url: "http://auth.ucode.com",
   realm: "leetcode",
-  clientId: "frontend",
+  clientId: "leetcode_frontend",
 });
 
 export interface KeycloakWrapperProps {

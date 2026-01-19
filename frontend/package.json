@@ -9,6 +9,12 @@
     "build": "bun run build.ts"
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/lang-java": "^6.0.2",
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.39.4",
     "@react-keycloak/web": "^3.4.0",
     "axios": "^1.13.2",
     "bun-plugin-tailwind": "^0.0.15",
