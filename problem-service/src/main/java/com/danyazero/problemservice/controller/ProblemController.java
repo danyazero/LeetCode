@@ -1,7 +1,6 @@
 package com.danyazero.problemservice.controller;
 
 import com.danyazero.problemservice.entity.Problem;
-import com.danyazero.problemservice.exception.RequestException;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.CreateProblemDto;
 import com.danyazero.problemservice.model.ProblemResponse;

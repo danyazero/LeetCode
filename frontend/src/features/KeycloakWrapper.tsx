@@ -1,9 +1,9 @@
-import { ReactKeycloakProvider, useKeycloak } from "@react-keycloak/web";
+import { ReactKeycloakProvider } from "@react-keycloak/web";
 import Keycloak from "keycloak-js";
 import type { ReactNode } from "react";
 
 export const keycloakContext = new Keycloak({
-  url: "http://auth.ucode.com",
+  url: "http://auth.localhost",
   realm: "leetcode",
   clientId: "leetcode_frontend",
 });
@@ -22,8 +22,10 @@ export const keycloakContextInit = keycloakContext.init({
 
 export const KeycloakWrapper = ({ children }: KeycloakWrapperProps) => {
   return (
-    <ReactKeycloakProvider authClient={keycloakContext}>
-      {children}
-    </ReactKeycloakProvider>
+    <>
+      <ReactKeycloakProvider authClient={keycloakContext}>
+        {children}
+      </ReactKeycloakProvider>
+    </>
   );
 };

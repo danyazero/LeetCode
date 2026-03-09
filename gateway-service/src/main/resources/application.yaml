@@ -10,30 +10,14 @@ spring:
               uri: http://frontend:3000
               predicates:
                 - Host=localhost
-              metadata:
-                cors:
-                  allowedOrigins: 'http://localhost'
-                  allowedMethods:
-                    - GET
-                    - POST
-                  allowedHeaders: '*'
             - id: keycloak
               uri: http://keycloak:8080
               predicates:
-                - Host=auth.ucode.com
-              metadata:
-                cors:
-                  allowedOrigins: "http://localhost"
-                  allowedMethods:
-                    - GET
-                    - POST
-                    - OPTIONS
-                  allowedHeaders: "*"
-                  allowCredentials: true
+                - Host=auth.localhost
             - id: problem-service
               uri: lb://problem
               predicates:
-                - Host=problem.ucode.com
+                - Host=problem.localhost
                 - Path=/api/**
               metadata:
                 cors:
@@ -45,7 +29,7 @@ spring:
             - id: submission-service
               uri: lb://submission
               predicates:
-                - Host=submission.ucode.com
+                - Host=submission.localhost
                 - Path=/api/**
               metadata:
                 cors:

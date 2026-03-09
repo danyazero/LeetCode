@@ -3,4 +3,6 @@ build-all:
 	make -C ./discovery-service build
 	make -C ./executor-service build
 	make -C ./problem-service build
+	make -C ./submission-service build
+	make -C ./gateway-service build
 
