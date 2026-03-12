@@ -1,0 +1,61 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: swagger
+              uri: http://localhost:8080
+              predicates:
+                - Host=swagger.localhost
+            - id: frontend
+              uri: http://frontend:3000
+              predicates:
+                - Host=localhost
+            - id: keycloak
+              uri: http://keycloak:8080
+              predicates:
+                - Host=auth.localhost
+            - id: problem-service
+              uri: lb://problem
+              predicates:
+                - Host=problem.localhost
+                - Path=/api/**
+              metadata:
+                cors:
+                  allowedOrigins:
+                    - "http://localhost"
+                    - "http://swagger.localhost"
+                  allowedMethods:
+                    - GET
+                    - POST
+                  allowedHeaders: "*"
+            - id: submission-service
+              uri: lb://submission
+              predicates:
+                - Host=submission.localhost
+                - Path=/api/**
+              metadata:
+                cors:
+                  allowedOrigins:
+                    - "http://localhost"
+                    - "http://swagger.localhost"
+                  allowedMethods:
+                    - GET
+                    - POST
+                  allowedHeaders: "*"
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: problem-service
+        url: http://problem.localhost/api/v3/api-docs
+      - name: submission-service
+        url: http://submission.localhost/api/v3/api-docs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery:8761/eureka
+  instance:
+    prefer-ip-address: true

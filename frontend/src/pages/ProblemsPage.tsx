@@ -1,101 +1,47 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { keycloakContext } from "@/features/KeycloakWrapper";
-import { ProblemCard, type ProblemCardProps } from "@/entities/ProblemCard";
+import { ProblemCard } from "@/entities/ProblemCard";
 import { ProblemSearchWidget } from "@/widget/ProblemSearchWidget";
+import { fetchProblems, type Problem, type ProblemSearchParams } from "@/api/problems";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import type { Difficulty } from "@/shared/Badge";
 
 export const ProblemsPage = () => {
-  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const SAMPLE_TASKS: ProblemCardProps[] = [
-    {
-      id: 1,
-      title: "Two Sum",
-      difficulty: "Easy",
-      acceptanceRate: 52.3,
-      submissionsCount: 14_800_000,
-      isCompleted: true,
-    },
-    {
-      id: 3,
-      title: "Longest Substring Without Repeating Characters",
-      difficulty: "Medium",
-      acceptanceRate: 34.1,
-      submissionsCount: 9_200_000,
-      isCompleted: true,
-    },
-    {
-      id: 4,
-      title: "Median of Two Sorted Arrays",
-      difficulty: "Hard",
-      acceptanceRate: 38.7,
-      submissionsCount: 5_100_000,
-      isCompleted: false,
-    },
-    {
-      id: 23,
-      title: "Merge K Sorted Lists",
-      difficulty: "Hard",
-      acceptanceRate: 51.8,
-      submissionsCount: 3_700_000,
-      isCompleted: false,
-    },
-    {
-      id: 53,
-      title: "Maximum Subarray",
-      difficulty: "Medium",
-      acceptanceRate: 50.5,
-      submissionsCount: 7_400_000,
-      isCompleted: true,
-    },
-    {
-      id: 121,
-      title: "Best Time to Buy and Sell Stock",
-      difficulty: "Easy",
-      acceptanceRate: 58.2,
-      submissionsCount: 8_900_000,
-      isCompleted: false,
-    },
-    {
-      id: 200,
-      title: "Number of Islands",
-      difficulty: "Medium",
-      acceptanceRate: 57.4,
-      submissionsCount: 6_100_000,
-      isCompleted: false,
-    },
-    {
-      id: 295,
-      title: "Find Median from Data Stream",
-      difficulty: "Hard",
-      acceptanceRate: 51.3,
-      submissionsCount: 1_900_000,
-      isCompleted: true,
-    },
-  ];
+  // To handle pagination later
+  // const [page, setPage] = useState(0);
+  // const [hasMore, setHasMore] = useState(false);
 
-  const MOCK_DIFFICULTIES = [
-    { id: 1, name: "Easy" },
-    { id: 2, name: "Medium" },
-    { id: 3, name: "Hard" },
-  ];
+  const [searchParams, setSearchParams] = useState<ProblemSearchParams>({ page: 0, size: 10 });
 
-  const MOCK_TAGS = [
-    { id: 1, value: "Array" },
-    { id: 2, value: "Hash Table" },
-    { id: 3, value: "Linked List" },
-    { id: 4, value: "Dynamic Programming" },
-    { id: 5, value: "Graph" },
-    { id: 6, value: "BFS" },
-    { id: 7, value: "DFS" },
-    { id: 8, value: "Sliding Window" },
-    { id: 9, value: "Two Pointers" },
-    { id: 10, value: "Binary Search" },
-    { id: 11, value: "Backtracking" },
-    { id: 12, value: "Greedy" },
-    { id: 13, value: "Heap / Priority Queue" },
-    { id: 14, value: "Stack" },
-    { id: 15, value: "Trie" },
-  ];
+  const loadProblems = useCallback(async (params: ProblemSearchParams) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await fetchProblems(params);
+      console.log(data.content)
+      setProblems(data.content);
+      // For future pagination
+      // setPage(data.number);
+      // setHasMore(data.number < data.totalPages - 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load problems");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleSearch = useCallback((params: ProblemSearchParams & { size: number }) => {
+    setSearchParams(params);
+    loadProblems(params);
+  }, [loadProblems]);
 
   return (
     <div className="flex flex-row justify-center w-full ">
@@ -107,15 +53,59 @@ export const ProblemsPage = () => {
       </div>
       <div className="flex flex-col max-w-4xl w-full gap-2 mt-8">
         <p className="text-4xl text-black">Problems</p>
-        <ProblemSearchWidget onSearch={(a) => console.log(a)} />
+        <ProblemSearchWidget onSearch={handleSearch} />
 
-        {SAMPLE_TASKS.map((task) => (
-          <ProblemCard
-            key={task.id}
-            {...task}
-            onClick={() => console.log(task.id)}
-          />
-        ))}
+        {error && (
+          <div className="p-4 text-center text-red-500 bg-red-50 rounded-lg border border-red-200 mt-4">
+            <p className="text-sm font-medium">{error}</p>
+            <button
+              onClick={() => loadProblems(searchParams)}
+              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 w-full mt-4">
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <Card key={i} className="relative w-full border border-border/60 bg-card">
+                <CardHeader className="px-5">
+                  <div className="flex items-start gap-3">
+                    <Skeleton className="h-5 w-5 rounded-full" />
+                    <div className="flex flex-1 items-center gap-2 min-w-0">
+                      <Skeleton className="h-5 flex-1 max-w-[250px]" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <Separator className="mx-5 w-auto" style={{ width: "calc(100% - 2.5rem)" }} />
+                <CardContent className="px-5">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : !error && problems.length === 0 ? (
+            <p className="text-center text-muted-foreground mt-8">No problems found</p>
+          ) : (
+            !error && problems.map((problem) => (
+              <ProblemCard
+                key={problem.id}
+                isCompleted={false}
+                id={problem.id}
+                title={problem.title}
+                difficulty={problem.difficulty.value as Difficulty}
+                acceptance_rate={problem.acceptance_rate}
+                submissions={problem.submissions}
+                onClick={() => navigate(`/problem/${problem.id}`)}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,16 +1,13 @@
 package com.danyazero.submissionservice.controller;
 
 import com.danyazero.submissionservice.entity.Submission;
-import com.danyazero.submissionservice.model.PageDto;
 import com.danyazero.submissionservice.model.SubmissionDto;
 import com.danyazero.submissionservice.model.SubmissionsResponse;
 import com.danyazero.submissionservice.service.SubmissionService;
-import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,9 +29,11 @@ public class SubmissionController {
         @PathVariable Integer problemId,
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(required = false, defaultValue = "5") Integer size,
-        Principal principal
+        JwtAuthenticationToken authenticationToken
     ) {
-        var userId = UUID.fromString(principal.getName());
+        var userId = UUID.fromString(
+            authenticationToken.getToken().getClaimAsString("uid")
+        );
 
         return submissionService.findByProblemId(
             problemId,

@@ -12,10 +12,8 @@ export interface Problem {
   id: number;
   title: string;
   difficulty: Difficulty;
-  acceptanceRate: number;
-  submissionsCount: number;
-  isCompleted: boolean;
-  tags: Tag[];
+  acceptance_rate: number;
+  submissions: number;
 }
 
 export interface ProblemSearchParams {

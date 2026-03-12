@@ -1,5 +1,6 @@
 import { FaRegCheckCircle } from "react-icons/fa";
 import { FaRegCircleXmark } from "react-icons/fa6";
+import { Card } from "@/components/ui/card";
 
 export enum SubmissionStatus {
   ACCEPTED = "ACCEPTED",
@@ -18,16 +19,16 @@ export interface SubmissionProps {
 
 export const Submission = (props: SubmissionProps) => {
   return (
-    <div className="flex flex-row gap-4 bg-foreground rounded-lg p-4 items-center">
+    <Card className="flex flex-row gap-4 p-4 items-center">
       {props.status === SubmissionStatus.ACCEPTED ? (
-        <FaRegCheckCircle color="var(--color-green)" size="1.25rem" />
+        <FaRegCheckCircle className="text-green-500" size="1.25rem" />
       ) : (
-        <FaRegCircleXmark color="var(--color-red-500)" size="1.25rem" />
+        <FaRegCircleXmark className="text-destructive" size="1.25rem" />
       )}
       <div className="flex flex-col gap-1">
         <p className="text-sm font-medium">Submission #{props.id}</p>
-        <p className="text-sm text-gray">{props.status}</p>
+        <p className="text-sm text-muted-foreground">{props.status}</p>
       </div>
-    </div>
+    </Card>
   );
 };

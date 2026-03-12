@@ -1,13 +1,15 @@
 import type { SubmissionsResponse } from "@/App";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge, type Variant } from "@/shared/Badge";
 import { ProblemTag } from "@/shared/ProblemTag";
 import { Example } from "@/widget/Example";
 import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
-import { Window } from "@/widget/Window";
-import { IoCodeSlash, IoDocumentTextOutline } from "react-icons/io5";
-import { MdOutlineSignalCellularAlt } from "react-icons/md";
 import { useLoaderData } from "react-router";
-import { Editor } from "@/widget/Editor";
+import { Editor, type EditorHandle } from "@/widget/Editor";
 import { keycloakContext } from "@/features/KeycloakWrapper";
+import { useRef } from "react";
+import { Play } from "lucide-react";
 
 export interface IProblem {
   id: number;
@@ -35,6 +37,7 @@ export interface ProblemData {
 
 export const ProblemPage = () => {
   const data = useLoaderData<IProblem>();
+  const editorRef = useRef<EditorHandle>(null);
 
   if (!data) {
     return <div>Loading...</div>;
@@ -47,19 +50,30 @@ export const ProblemPage = () => {
         <p onClick={() => keycloakContext.logout()} className="text-base font-medium">{data.title}</p>
       </div>
       <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
-        <Window icon={IoDocumentTextOutline} title="Statement">
-          <div className="px-4 py-4 overflow-y-auto h-full">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-1">
-                <h3 className="text-3xl">{data.title}</h3>
-                <p className="text-sm text-gray">{data.difficulty.value}</p>
-              </div>
-              <p>{data.description}</p>
+        <Card className="relative w-full border border-border/60 bg-card overflow-hidden">
+          <CardHeader className="px-5">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
+                {data.title}
+              </h3>
+              <Badge title={data.difficulty.value} variant={data.difficulty.value as Variant} />
+            </div>
+          </CardHeader>
 
-              <div className="flex flex-col gap-6">
-                <p className="text-2xl">Examples</p>
+          <Separator
+            className="mx-5 w-auto"
+            style={{ width: "calc(100% - 2.5rem)" }}
+          />
+
+          <CardContent className="px-5 overflow-y-auto h-full">
+            <div className="flex flex-col gap-6">
+              <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
+
+              <div className="flex flex-col gap-4">
+                <h4 className="text-base font-semibold tracking-tight">Examples</h4>
                 {data.testcases.map((testcase: ITestcase, index: number) => (
                   <Example
+                    key={testcase.id}
                     id={index + 1}
                     input={testcase.input.replaceAll(", ", "\n")}
                     expected={testcase.expected.replaceAll(", ", "\n")}
@@ -67,23 +81,33 @@ export const ProblemPage = () => {
                 ))}
               </div>
             </div>
-          </div>
-        </Window>
+          </CardContent>
+        </Card>
 
-        <div className="flex flex-col w-full gap-2">
-          <Window icon={IoCodeSlash} title="Editor" loginRequired>
-            <Editor problemId={data.id} />
-          </Window>
+        <div className="flex flex-col w-full gap-2 min-w-0">
+          <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden flex flex-col">
+            <CardHeader className="px-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold leading-snug tracking-tight">Editor</h3>
+                <button
+                  onClick={() => editorRef.current?.submit()}
+                  className="flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer"
+                >
+                  <Play size={"1rem"} />
+                </button>
+              </div>
+            </CardHeader>
+            <Separator
+              className="mx-5 w-auto"
+              style={{ width: "calc(100% - 2.5rem)" }}
+            />
+            <CardContent className="px-5 flex-1 min-h-0">
+              <Editor ref={editorRef} problemId={data.id} />
+            </CardContent>
+          </Card>
 
-          <Window
-            icon={MdOutlineSignalCellularAlt}
-            title="Testing"
-            loginRequired
-          >
-            <div className="px-4 py-4 overflow-y-auto h-full">
-              <ProblemSubmissions problemId={data.id} />
-            </div>
-          </Window>
+          <ProblemSubmissions problemId={data.id} />
+
         </div>
       </div>
     </div>

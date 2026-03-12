@@ -6,7 +6,6 @@ import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.repository.DifficultyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

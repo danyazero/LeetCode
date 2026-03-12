@@ -1,17 +1,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { DifficultyBadge, type Difficulty } from "@/shared/DifficultyBadge";
+import { Badge, type Variant } from "@/shared/Badge";
 import { CompletionIndicator } from "@/shared/CompletionIndicator";
 import { AcceptanceRate } from "@/shared/AcceptanceRate";
 import { SubmissionCount } from "@/shared/SubmissionCount";
+import { useEffect } from "react";
 
 export interface ProblemCardProps {
   id: number;
   title: string;
-  difficulty: Difficulty;
-  acceptanceRate: number; // 0–100
-  submissionsCount: number;
+  difficulty: Variant;
+  acceptance_rate: number; // 0–100
+  submissions: number;
   isCompleted: boolean;
   onClick?: () => void;
 }
@@ -20,11 +21,14 @@ export function ProblemCard({
   id,
   title,
   difficulty,
-  acceptanceRate,
-  submissionsCount,
-  isCompleted,
+  acceptance_rate: acceptanceRate,
+  submissions: submissionsCount,
+  isCompleted = false,
   onClick,
 }: ProblemCardProps) {
+  useEffect(() => {
+    console.log({ title, submissionsCount, acceptanceRate })
+  }, [])
   return (
     <Card
       onClick={onClick}
@@ -46,13 +50,13 @@ export function ProblemCard({
                 "flex-1 truncate text-sm font-semibold leading-snug tracking-tight",
                 "group-hover:text-primary transition-colors duration-150",
                 isCompleted &&
-                  "text-muted-foreground line-through decoration-muted-foreground/40",
+                "text-muted-foreground line-through decoration-muted-foreground/40",
               )}
               title={title}
             >
               {title}
             </h3>
-            <DifficultyBadge difficulty={difficulty} />
+            <Badge title={difficulty} variant={difficulty} />
           </div>
         </div>
       </CardHeader>

@@ -8,7 +8,7 @@ export interface ExampleProps {
 
 export const Example = (props: ExampleProps) => {
   return (
-    <div className="flex flex-row w-full gap-4">
+    <div className="flex flex-col sm:flex-row w-full gap-4">
       <Console title={`Input #${props.id}`} value={props.input} />
       <Console title={`Answer #${props.id}`} value={props.expected} />
     </div>

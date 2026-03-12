@@ -48,6 +48,7 @@ public class ProblemService {
             .difficulty(problem.getDifficulty())
             .testcases(publicTestcases)
             .title(problem.getTitle())
+            .tags(problem.getTags())
             .id(problem.getId())
             .build();
     }
