@@ -1,4 +1,4 @@
-package com.danyazero.submissionservice.model;
+package com.danyazero.problemservice.model;
 
 public record SubmissionUpdatedEventDto(
         Integer problemId,

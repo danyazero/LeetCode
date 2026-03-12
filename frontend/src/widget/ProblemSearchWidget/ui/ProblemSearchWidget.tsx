@@ -1,9 +1,8 @@
 import * as React from "react";
-import { X, Search, Loader2, Hash, AtSign } from "lucide-react";
+import { Loader2, Hash, AtSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ProblemSearchParams } from "@/api/problems";
-import { type TokenKind } from "@/shared/TokenChip";
 import {
   SuggestionsDropdown,
   type SuggestionItem,
@@ -108,7 +107,6 @@ export function ProblemSearchWidget({
         handleKeyDown={handleKeyDown}
         token={token}
       />
-      {/* ── Autocomplete dropdown ──────────────────────────────────── */}
       {dropdownOpen && (
         <div
           className={cn(
@@ -117,7 +115,6 @@ export function ProblemSearchWidget({
             "overflow-hidden",
           )}
         >
-          {/* Dropdown header */}
           <div className="flex items-center gap-2 px-3 py-2 border-b border-border/50 bg-muted/40">
             {activeToken?.kind === "tag" ? (
               <>

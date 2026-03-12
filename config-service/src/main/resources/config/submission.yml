@@ -1,4 +1,3 @@
-
 spring:
   security:
     oauth2:
@@ -11,8 +10,15 @@ spring:
     username: ${SUBMISSION_DB_USER}
     password: ${SUBMISSION_DB_PASSWORD}
     url: jdbc:postgresql://submission-database:5432/${SUBMISSION_DB}
+
 kafka:
   bootstrap-servers-config: kafka:9092
+
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs
+  swwagger-ui:
+    enabled: false
 
 eureka:
   client:

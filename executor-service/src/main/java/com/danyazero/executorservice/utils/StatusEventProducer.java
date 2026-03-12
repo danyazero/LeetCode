@@ -13,14 +13,13 @@ import java.util.function.BiConsumer;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StatusEventProducer implements BiConsumer<Integer, SubmissionStatus> {
+public class StatusEventProducer {
     private final KafkaTemplate<String, SubmissionUpdatedEvent> submissionKafkaTemplate;
 
-    @Override
-    public void accept(Integer submissionId, SubmissionStatus submissionStatus) {
+    public void accept(Integer problemId, Integer submissionId, SubmissionStatus submissionStatus) {
         var event = new SubmissionUpdatedEvent(
                 1,
-                new SubmissionUpdated(submissionId, submissionStatus)
+                new SubmissionUpdated(problemId, submissionId, submissionStatus)
         );
 
         submissionKafkaTemplate.sendDefault(event)

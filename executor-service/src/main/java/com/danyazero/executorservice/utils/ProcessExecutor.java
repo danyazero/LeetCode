@@ -4,12 +4,15 @@ import com.danyazero.executorservice.error.ProcessExecutionException;
 import com.danyazero.executorservice.model.ExecutionResult;
 import com.danyazero.executorservice.model.ProcessConfig;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public record ProcessExecutor(ProcessConfig processConfig) {
     public ExecutionResult execute(List<String> command, int timeLimit) {
         try {
@@ -24,6 +27,7 @@ public record ProcessExecutor(ProcessConfig processConfig) {
             if (compilationProcess.exitValue() != 0) {
                 final var stderr = read(compilationProcess.getErrorStream());
 
+                log.info("Process execution output -> {}", stdout);
                 return new ExecutionResult.Failure(stderr.isBlank() ? stdout : stderr);
             }
 

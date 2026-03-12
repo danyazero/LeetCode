@@ -23,7 +23,7 @@ public class SubmissionService {
                 compiler -> processSubmission(submission, compiler),
                 () -> {
                     log.info("Compiler for language - '{}' not found", submission.language());
-                    statusEventProducer.accept(submission.id(), SubmissionStatus.UNSUPPORTED_LANGUAGE);
+                    statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.UNSUPPORTED_LANGUAGE);
                 }
         );
     }
@@ -34,30 +34,30 @@ public class SubmissionService {
 
         final var testcases = problemClient.getProblemTestcases(submission.problemId());
         for (var testcase : testcases) {
-            final var output = runTestcase(compiledProgram.get(), testcase.input(), submission.id());
+            final var output = runTestcase(compiledProgram.get(), testcase.input(), submission.problemId(), submission.id());
             if (isNotEqualsExpected(output, testcase.expected())) {
                 log.info("Wrong answer for submission {} -> {}, expected -> {}",
                         submission.id(), output, testcase.expected());
 
-                statusEventProducer.accept(submission.id(), SubmissionStatus.WRONG_ANSWER);
+                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.WRONG_ANSWER);
                 compiledProgram.get().cleanup();
                 return;
             }
         }
         compiledProgram.get().cleanup();
-        statusEventProducer.accept(submission.id(), SubmissionStatus.ACCEPTED);
+        statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.ACCEPTED);
     }
 
     private Optional<CompiledProgram> compileSolution(Compiler compiler, SubmissionCreated submission) {
         return switch (compiler.compile(submission.solution())) {
             case CompilationResult.Failure error -> {
-                statusEventProducer.accept(submission.id(), SubmissionStatus.COMPILATION_ERROR);
+                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.COMPILATION_ERROR);
                 log.info("Compilation failed for submission - {}, with error: {}", submission.id(), error.message());
 
                 yield Optional.empty();
             }
             case CompilationResult.Success result -> {
-                statusEventProducer.accept(submission.id(), SubmissionStatus.COMPILED);
+                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.COMPILED);
                 log.info("Compilation completed successfully");
 
                 yield Optional.of(result.program());
@@ -65,18 +65,18 @@ public class SubmissionService {
         };
     }
 
-    private Optional<String> runTestcase(CompiledProgram compiledProgram, String input, int submissionId) {
+    private Optional<String> runTestcase(CompiledProgram compiledProgram, String input, int problemId, int submissionId) {
 
         return switch (compiledProgram.execute(List.of(input.split(", ")), 2)) {
             case ExecutionResult.Failure error -> {
                 log.info("Execution error for submission {}: {}", submissionId, error.message());
-                statusEventProducer.accept(submissionId, SubmissionStatus.INTERNAL_ERROR);
+                statusEventProducer.accept(problemId, submissionId, SubmissionStatus.INTERNAL_ERROR);
 
                 yield Optional.empty();
             }
             case ExecutionResult.Timeout ignored -> {
                 log.info("Time limit exceeded for submission {}", submissionId);
-                statusEventProducer.accept(submissionId, SubmissionStatus.TIME_LIMIT_EXCEEDED);
+                statusEventProducer.accept(problemId, submissionId, SubmissionStatus.TIME_LIMIT_EXCEEDED);
 
                 yield Optional.empty();
             }

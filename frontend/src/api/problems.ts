@@ -4,11 +4,9 @@ export interface PageDto<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page (0-indexed)
+  number: number;
   size: number;
 }
-
-// ─── Domain entities ──────────────────────────────────────────────────────────
 
 export interface Problem {
   id: number;
@@ -20,8 +18,6 @@ export interface Problem {
   tags: Tag[];
 }
 
-// ─── Search params (mirrors Spring @RequestParams) ────────────────────────────
-
 export interface ProblemSearchParams {
   query?: string;
   tag?: number;
@@ -29,8 +25,6 @@ export interface ProblemSearchParams {
   page: number;
   size: number;
 }
-
-// ─── Base config ──────────────────────────────────────────────────────────────
 
 const BASE_URL = "http://problem.localhost/api/v1";
 
@@ -51,12 +45,7 @@ async function get<T>(
   return res.json() as Promise<T>;
 }
 
-// ─── Problems ─────────────────────────────────────────────────────────────────
-
-/**
- * GET /problems
- * Maps to: getProblems(@RequestParam query, tag, difficulty, page, size)
- */
+// All request params are optional 
 export function fetchProblems(
   params: ProblemSearchParams,
 ): Promise<PageDto<Problem>> {
@@ -69,31 +58,14 @@ export function fetchProblems(
   });
 }
 
-// ─── Difficulties ─────────────────────────────────────────────────────────────
-
-/**
- * GET /difficulties
- * Maps to: findAll(@RequestParam page, size)
- * Fetches the full first page (size=100) to populate the filter dropdown.
- */
 export function fetchDifficulties(): Promise<PageDto<Difficulty>> {
   return get<PageDto<Difficulty>>("/difficulties", { page: 0, size: 10 });
 }
 
-// ─── Tags ─────────────────────────────────────────────────────────────────────
-
-/**
- * GET /tags  — all tags (initial load / empty search query)
- * Maps to: findAll(@RequestParam page, size)
- */
 export function fetchAllTags(page = 0, size = 20): Promise<PageDto<Tag>> {
   return get<PageDto<Tag>>("/tags", { page, size });
 }
 
-/**
- * GET /tags/{query}  — filtered by query string
- * Maps to: getTagsByQuery(@PathVariable query, @RequestParam page, size)
- */
 export function fetchTagsByQuery(
   query: string,
   page = 0,

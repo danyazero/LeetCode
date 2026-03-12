@@ -1,11 +1,10 @@
 package com.danyazero.problemservice.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-
 import java.time.Instant;
 import java.util.Set;
+import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
@@ -15,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Problem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -25,9 +25,6 @@ public class Problem {
 
     @Column(name = "description", nullable = false, length = Integer.MAX_VALUE)
     private String description;
-
-    @Column(name = "method_schema", nullable = false, length = Integer.MAX_VALUE)
-    private String methodSchema;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "difficulty_id", nullable = false)
@@ -43,9 +40,19 @@ public class Problem {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "problem_tag",
-            joinColumns = @JoinColumn(name = "problem_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+        name = "problem_tag",
+        joinColumns = @JoinColumn(name = "problem_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags;
+
+    @Column(name = "sent_submissions", nullable = false)
+    private Integer sentSubmissions;
+
+    @Column(name = "accepted_submissions", nullable = false)
+    private Integer acceptedSubmissions;
+
+    public Double getAcceptanceRate() {
+        return (this.acceptedSubmissions.doubleValue() / this.sentSubmissions.doubleValue()) * 100.0;
+    }
 }

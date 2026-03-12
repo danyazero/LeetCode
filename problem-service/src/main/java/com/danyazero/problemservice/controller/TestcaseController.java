@@ -5,22 +5,33 @@ import com.danyazero.problemservice.exception.RequestException;
 import com.danyazero.problemservice.model.TestcaseDto;
 import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.repository.TestcaseRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/testcases")
 public class TestcaseController {
+
     private final TestcaseRepository testcaseRepository;
     private final ProblemRepository problemRepository;
 
     @PostMapping
     public Testcase createTestcase(@RequestBody TestcaseDto testcaseDto) {
-        var problem = problemRepository.findById(testcaseDto.problemId())
-                .orElseThrow(() -> new RequestException("Problem row not found by provided problemId."));
+        log.info(
+            "Create testcase request for problem with id -> {}",
+            testcaseDto.problemId()
+        );
+        var problem = problemRepository
+            .findById(testcaseDto.problemId())
+            .orElseThrow(() ->
+                new RequestException(
+                    "Problem row not found by provided problemId."
+                )
+            );
 
         return testcaseRepository.save(testcaseDto.toEntity(problem));
     }

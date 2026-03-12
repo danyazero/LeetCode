@@ -1,10 +1,10 @@
 package com.danyazero.problemservice.controller;
 
 import com.danyazero.problemservice.entity.Problem;
-import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.CreateProblemDto;
+import com.danyazero.problemservice.model.PageDto;
+import com.danyazero.problemservice.model.ProblemDto;
 import com.danyazero.problemservice.model.ProblemResponse;
-import com.danyazero.problemservice.repository.ProblemRepository;
 import com.danyazero.problemservice.service.ProblemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/problems")
 @RequiredArgsConstructor
 public class ProblemController {
-    private final ProblemRepository repository;
+
     private final ProblemService service;
 
     @GetMapping("/{problemId}")
@@ -22,16 +22,14 @@ public class ProblemController {
     }
 
     @GetMapping
-    public PageDto<Problem> getProblems(
-            @RequestParam(required = false) String query,
-            @RequestParam(required = false) Integer tag,
-            @RequestParam(required = false) Integer difficulty,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size
+    public PageDto<ProblemDto> getProblems(
+        @RequestParam(required = false) String query,
+        @RequestParam(required = false) Integer tag,
+        @RequestParam(required = false) Integer difficulty,
+        @RequestParam(required = false, defaultValue = "0") Integer page,
+        @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
-        return PageDto.of(
-                service.findProblems(query, tag, difficulty, page, size)
-        );
+        return service.findProblems(query, tag, difficulty, page, size);
     }
 
     @PostMapping

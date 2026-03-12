@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     libnl-route-3-dev \
     pkg-config \
     ca-certificates \
+    uidmap \
     curl \
  && rm -rf /var/lib/apt/lists/*
 
