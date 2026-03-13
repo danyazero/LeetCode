@@ -11,6 +11,7 @@ import { useTokens } from "../hooks/useTokens";
 import { useActiveToken } from "../hooks/useActiveToken";
 import { useSuggestions } from "../hooks/useSuggestions";
 import { SearchInput } from "./SearchInput";
+import { useSearchStore } from "../store/useSearchStore";
 
 interface ProblemSearchWidgetProps {
   onSearch: (params: ProblemSearchParams & { size: number }) => void;
@@ -24,9 +25,13 @@ export function ProblemSearchWidget({
   const inputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-
-  const [rawInput, setRawInput] = React.useState("");
-  const [activeIndex, setActiveIndex] = React.useState(-1);
+  const rawInput = useSearchStore((state) => state.rawInput);
+  const setRawInput = useSearchStore((state) => state.setRawInput);
+  const activeIndex = useSearchStore((state) => state.activeIndex);
+  const setActiveIndex = useSearchStore((state) => state.setActiveIndex);
+  const dropdownOpen = useSearchStore((state) => state.dropdownOpen);
+  const setDropdownOpen = useSearchStore((state) => state.setDropdownOpen);
+  const applySuggestion = useSearchStore((state) => state.applySuggestion);
 
   const token = useTokens();
   const activeToken = useActiveToken(rawInput);
@@ -34,10 +39,7 @@ export function ProblemSearchWidget({
   const {
     suggestions,
     isLoading: sugLoading,
-    openDropdown,
-    closeDropdown,
-    dropdownOpen,
-  } = useSuggestions(activeToken, setActiveIndex);
+  } = useSuggestions(activeToken);
 
   const plainQuery = React.useMemo(() => {
     return rawInput.replace(/(?:^|[\s])(?:@|#)\S*/g, "").trim();
@@ -58,10 +60,7 @@ export function ProblemSearchWidget({
   }, [debouncedPlain, token.all]);
 
   const applyToken = (item: SuggestionItem) => {
-    token.set(item);
-
-    setRawInput((prev) => prev.replace(/(?:^|[\s])(?:@|#)\S*$/, "").trimEnd());
-    closeDropdown();
+    applySuggestion(item, activeToken?.kind ?? null);
     inputRef.current?.focus();
   };
 
@@ -78,7 +77,7 @@ export function ProblemSearchWidget({
         applyToken(suggestions[activeIndex]);
       }
     } else if (e.key === "Escape") {
-      closeDropdown();
+      setDropdownOpen(false);
     }
   };
 
@@ -88,7 +87,7 @@ export function ProblemSearchWidget({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        closeDropdown();
+        setDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -103,7 +102,7 @@ export function ProblemSearchWidget({
         setValue={setRawInput}
         activeToken={activeToken}
         dropdownOpen={dropdownOpen}
-        openDropdown={openDropdown}
+        openDropdown={() => setDropdownOpen(true)}
         handleKeyDown={handleKeyDown}
         token={token}
       />

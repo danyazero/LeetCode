@@ -5,21 +5,17 @@ import {
   highlightActiveLineGutter,
   lineNumbers,
 } from "@codemirror/view";
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import axios from "axios";
-import { keycloakContext } from "@/features/KeycloakWrapper";
+import { useEffect, useRef } from "react";
+import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 
 export interface EditorProps {
   problemId: number;
 }
 
-export interface EditorHandle {
-  submit: () => void;
-}
-
-export const Editor = forwardRef<EditorHandle, EditorProps>((props, ref) => {
+export const Editor = (props: EditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const setCode = useProblemStore((state) => state.setCode);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -28,6 +24,13 @@ export const Editor = forwardRef<EditorHandle, EditorProps>((props, ref) => {
       "&.cm-focused": { outline: "none", boxShadow: "none" },
       ".cm-scroller": { overflow: "auto" },
     });
+
+    const updateListener = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        setCode(update.state.doc.toString());
+      }
+    });
+
     const state = EditorState.create({
       doc: "",
       extensions: [
@@ -35,6 +38,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>((props, ref) => {
         highlightActiveLineGutter(),
         highlightActiveLine(),
         theme,
+        updateListener,
       ],
     });
 
@@ -47,34 +51,9 @@ export const Editor = forwardRef<EditorHandle, EditorProps>((props, ref) => {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, []);
-
-  const handleSubmit = async () => {
-    const code = viewRef.current?.state.doc.toString();
-
-    if (!code) return;
-    console.log(code);
-
-    await axios.post(
-      `http://submission.localhost/api/v1/submissions`,
-      {
-        problem_id: props.problemId,
-        solution: code,
-        language_id: 1,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${keycloakContext.token}`,
-        },
-      },
-    );
-  };
-
-  useImperativeHandle(ref, () => ({
-    submit: handleSubmit,
-  }));
+  }, [setCode]);
 
   return (
     <div className="h-full overflow-auto" ref={editorRef}></div>
   );
-});
+};

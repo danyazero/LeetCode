@@ -13,13 +13,15 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useSearchParams } from "react-router";
+import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 
 export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "0", 10);
+  const submissionCount = useProblemStore((state) => state.submissionCount);
 
   const { loading, submissions, error } = useQuery(
-    `http://submission.localhost/api/v1/submissions/problems/${problemId}?page=${page}&size=${3}`,
+    `http://submission.localhost/api/v1/submissions/problems/${problemId}?page=${page}&size=${3}&_refresh=${submissionCount}`,
   );
 
 

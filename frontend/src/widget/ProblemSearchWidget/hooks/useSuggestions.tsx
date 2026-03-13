@@ -11,18 +11,18 @@ import type { ActiveToken } from "./useActiveToken";
 export interface UseSuggestionsReturn {
   suggestions: SuggestionItem[];
   isLoading: boolean;
-  dropdownOpen: boolean;
-  openDropdown: () => void;
-  closeDropdown: () => void;
 }
+
+import { useSearchStore } from "../store/useSearchStore";
 
 export function useSuggestions(
   activeToken: ActiveToken | null,
-  setActiveIndex: (value: number) => void,
 ): UseSuggestionsReturn {
   const [suggestions, setSuggestions] = React.useState<SuggestionItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  const setDropdownOpen = useSearchStore((state) => state.setDropdownOpen);
+  const setActiveIndex = useSearchStore((state) => state.setActiveIndex);
 
   const debouncedQuery = useDebounce(activeToken?.query ?? "", 300);
 
@@ -73,14 +73,8 @@ export function useSuggestions(
     };
   }, [activeToken?.kind, debouncedQuery]);
 
-  const openDropdown = React.useCallback(() => setDropdownOpen(true), []);
-  const closeDropdown = React.useCallback(() => setDropdownOpen(false), []);
-
   return {
     suggestions,
     isLoading,
-    dropdownOpen,
-    openDropdown,
-    closeDropdown,
   };
 }

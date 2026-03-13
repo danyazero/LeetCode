@@ -1,43 +1,53 @@
 import * as React from "react";
 import type { AppliedToken, TokenKind } from "@/shared/TokenChip";
 import type { SuggestionItem } from "@/shared/SuggestionsDropdown";
+import { useSearchStore } from "../store/useSearchStore";
 
 export interface UseTokensReturn {
   all: AppliedToken[];
   set: (item: SuggestionItem) => void;
   remove: (kind: TokenKind) => void;
   pop: () => void;
-
   clear: () => void;
 }
 
-/**
- * Manages the list of applied filter tokens (tag / difficulty).
- * Only one token per kind is allowed; applying a new one of the same
- * kind replaces the previous one.
- */
 export function useTokens(): UseTokensReturn {
-  const [tokens, setTokens] = React.useState<AppliedToken[]>([]);
+  const storeTokens = useSearchStore((state) => state.tokens);
+  const addToken = useSearchStore((state) => state.addToken);
+  const removeToken = useSearchStore((state) => state.removeToken);
+  const clearTokens = useSearchStore((state) => state.clearTokens);
+
+  const tokens = React.useMemo<AppliedToken[]>(() => {
+    return storeTokens.map(t => ({
+      kind: t.kind,
+      id: t.data.id,
+      label: t.data.value
+    }));
+  }, [storeTokens]);
 
   const set = React.useCallback((item: SuggestionItem) => {
-    const { kind, data } = item;
-    setTokens((prev) => [
-      ...prev.filter((t) => t.kind !== kind),
-      { kind, id: data.id, label: data.value },
-    ]);
-  }, []);
+    addToken(item);
+  }, [addToken]);
 
   const remove = React.useCallback((kind: TokenKind) => {
-    setTokens((prev) => prev.filter((t) => t.kind !== kind));
-  }, []);
+    const tokenToRemove = storeTokens.find(t => t.kind === kind);
+    if (tokenToRemove) {
+      removeToken(tokenToRemove.data.id.toString(), kind);
+    }
+  }, [storeTokens, removeToken]);
 
   const clear = React.useCallback(() => {
-    setTokens([]);
-  }, []);
+    clearTokens();
+  }, [clearTokens]);
 
   const pop = React.useCallback(() => {
-    setTokens((prev) => prev.slice(0, -1));
-  }, []);
-  
+    if (storeTokens.length > 0) {
+      const lastToken = storeTokens[storeTokens.length - 1];
+      if (lastToken) {
+        removeToken(lastToken.data.id.toString(), lastToken.kind);
+      }
+    }
+  }, [storeTokens, removeToken]);
+
   return { all: tokens, set, remove, pop, clear };
 }

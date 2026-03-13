@@ -6,11 +6,13 @@ import { ProblemTag } from "@/shared/ProblemTag";
 import { Example } from "@/widget/Example";
 import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
 import { Link, useLoaderData } from "react-router";
-import { Editor, type EditorHandle } from "@/widget/Editor";
-import { useRef } from "react";
-import { ArrowLeft, Play } from "lucide-react";
+import { Editor } from "@/widget/Editor";
+import { useEffect } from "react";
+import { ArrowLeft, Play, Loader2 } from "lucide-react";
 import { keycloakContext } from "@/features/KeycloakWrapper";
 import { UserAvatar } from "@/shared/UserAvatar";
+import { useProblemStore } from "@/features/Problem/store/useProblemStore";
+import { cn } from "@/lib/utils";
 
 export interface IProblem {
   id: number;
@@ -38,7 +40,13 @@ export interface ProblemData {
 
 export const ProblemPage = () => {
   const data = useLoaderData<IProblem>();
-  const editorRef = useRef<EditorHandle>(null);
+  const submitSolution = useProblemStore((state) => state.submitSolution);
+  const isSubmitting = useProblemStore((state) => state.isSubmitting);
+  const setCode = useProblemStore((state) => state.setCode);
+
+  useEffect(() => {
+    setCode(""); // Clear code on mount
+  }, [setCode, data?.id]);
 
   if (!data) {
     return <div>Loading...</div>;
@@ -124,11 +132,14 @@ export const ProblemPage = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold leading-snug tracking-tight">Editor</h3>
                 <button
-                  onClick={() => editorRef.current?.submit()}
-                  className="flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!keycloakContext.authenticated}
+                  onClick={() => submitSolution(data.id)}
+                  className={cn(
+                    "flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                    isSubmitting && "opacity-50 cursor-not-allowed"
+                  )}
+                  disabled={!keycloakContext.authenticated || isSubmitting}
                 >
-                  <Play size={"1rem"} />
+                  {isSubmitting ? <Loader2 size={"1rem"} className="animate-spin" /> : <Play size={"1rem"} />}
                 </button>
               </div>
             </CardHeader>
@@ -137,7 +148,7 @@ export const ProblemPage = () => {
               style={{ width: "calc(100% - 2.5rem)" }}
             />
             <CardContent className="px-5 flex-1 min-h-0">
-              <Editor ref={editorRef} problemId={data.id} />
+              <Editor problemId={data.id} />
             </CardContent>
           </Card>
 
