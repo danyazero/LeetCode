@@ -15,10 +15,6 @@ export const ProblemsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // To handle pagination later
-  // const [page, setPage] = useState(0);
-  // const [hasMore, setHasMore] = useState(false);
-
   const [searchParams, setSearchParams] = useState<ProblemSearchParams>({ page: 0, size: 10 });
 
   const loadProblems = useCallback(async (params: ProblemSearchParams) => {
@@ -28,9 +24,6 @@ export const ProblemsPage = () => {
       const data = await fetchProblems(params);
       console.log(data.content)
       setProblems(data.content);
-      // For future pagination
-      // setPage(data.number);
-      // setHasMore(data.number < data.totalPages - 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load problems");
     } finally {
@@ -45,12 +38,6 @@ export const ProblemsPage = () => {
 
   return (
     <div className="flex flex-row justify-center w-full ">
-      <div>
-        <button onClick={() => keycloakContext.login()}>Sign in</button>
-        <button onClick={() => console.log(keycloakContext.token)}>
-          Token
-        </button>
-      </div>
       <div className="flex flex-col max-w-4xl w-full gap-2 mt-8">
         <p className="text-4xl text-black">Problems</p>
         <ProblemSearchWidget onSearch={handleSearch} />

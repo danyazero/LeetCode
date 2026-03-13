@@ -28,7 +28,14 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
     <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden">
       <CardHeader className="px-5 flex flex-row justify-between">
         <h3 className="text-base font-semibold leading-snug tracking-tight">Testing</h3>
-        <Badge title={"Accepted"} variant={"Easy"} />
+        {loading ? (
+          <Skeleton className="h-5 w-16 rounded-full" />
+        ) : error ? null : submissions ? (
+          <Badge 
+            title={submissions.is_accepted ? "Solved" : "Unsolved"} 
+            variant={submissions.is_accepted ? "Easy" : "Hard"} 
+          />
+        ) : null}
       </CardHeader>
       <Separator
         className="mx-5 w-auto"

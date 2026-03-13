@@ -9,6 +9,8 @@ import { Link, useLoaderData } from "react-router";
 import { Editor, type EditorHandle } from "@/widget/Editor";
 import { useRef } from "react";
 import { ArrowLeft, Play } from "lucide-react";
+import { keycloakContext } from "@/features/KeycloakWrapper";
+import { UserAvatar } from "@/shared/UserAvatar";
 
 export interface IProblem {
   id: number;
@@ -44,12 +46,42 @@ export const ProblemPage = () => {
 
   return (
     <div className="flex flex-col px-6 h-screen">
-      <div className="flex flex-row py-5 gap-4 items-center">
-        <Link to="/" className="hover:cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft size="1.25rem" />
-        </Link>
-        <ProblemTag id={data.id} isCompleted={true} />
-        <p className="text-base font-medium">{data.title}</p>
+      <div className="flex flex-row py-5 gap-4 items-center justify-between">
+        <div className="flex flex-row gap-4 items-center">
+          <Link to="/" className="hover:cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size="1.25rem" />
+          </Link>
+          <ProblemTag id={data.id} isCompleted={true} />
+          <p className="text-base font-medium">{data.title}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          {keycloakContext.authenticated ? (
+            <>
+              <UserAvatar username={keycloakContext.idTokenParsed?.preferred_username} />
+              <button
+                onClick={() => keycloakContext.logout()}
+                className="text-sm font-medium hover:cursor-pointer hover:text-muted-foreground transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => keycloakContext.login()}
+                className="text-sm font-medium hover:cursor-pointer hover:text-muted-foreground transition-colors"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={() => keycloakContext.register()}
+                className="text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Sign up
+              </button>
+            </>
+          )}
+        </div>
       </div>
       <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
         <Card className="relative w-full border border-border/60 bg-card overflow-hidden">
@@ -93,7 +125,8 @@ export const ProblemPage = () => {
                 <h3 className="text-base font-semibold leading-snug tracking-tight">Editor</h3>
                 <button
                   onClick={() => editorRef.current?.submit()}
-                  className="flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer"
+                  className="flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!keycloakContext.authenticated}
                 >
                   <Play size={"1rem"} />
                 </button>
