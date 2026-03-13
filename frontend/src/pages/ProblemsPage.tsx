@@ -7,7 +7,7 @@ import { fetchProblems, type Problem, type ProblemSearchParams } from "@/api/pro
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Difficulty } from "@/shared/Badge";
+import type { Variant } from "@/shared/Badge";
 
 export const ProblemsPage = () => {
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ export const ProblemsPage = () => {
                 isCompleted={false}
                 id={problem.id}
                 title={problem.title}
-                difficulty={problem.difficulty.value as Difficulty}
+                difficulty={problem.difficulty.value as Variant}
                 acceptance_rate={problem.acceptance_rate}
                 submissions={problem.submissions}
                 onClick={() => navigate(`/problem/${problem.id}`)}

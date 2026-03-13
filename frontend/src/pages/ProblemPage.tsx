@@ -5,11 +5,10 @@ import { Badge, type Variant } from "@/shared/Badge";
 import { ProblemTag } from "@/shared/ProblemTag";
 import { Example } from "@/widget/Example";
 import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { Editor, type EditorHandle } from "@/widget/Editor";
-import { keycloakContext } from "@/features/KeycloakWrapper";
 import { useRef } from "react";
-import { Play } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 
 export interface IProblem {
   id: number;
@@ -46,8 +45,11 @@ export const ProblemPage = () => {
   return (
     <div className="flex flex-col px-6 h-screen">
       <div className="flex flex-row py-5 gap-4 items-center">
+        <Link to="/" className="hover:cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft size="1.25rem" />
+        </Link>
         <ProblemTag id={data.id} isCompleted={true} />
-        <p onClick={() => keycloakContext.logout()} className="text-base font-medium">{data.title}</p>
+        <p className="text-base font-medium">{data.title}</p>
       </div>
       <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
         <Card className="relative w-full border border-border/60 bg-card overflow-hidden">

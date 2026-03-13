@@ -1,15 +1,27 @@
-import { Spinner } from "@/shared/Spinner";
 import { Submission } from "@/shared/Submission";
 import { Error } from "./Error";
 import { useQuery } from "@/features/QueryHook";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/shared/Badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useSearchParams } from "react-router";
 
 export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "0", 10);
+
   const { loading, submissions, error } = useQuery(
-    `http://submission.localhost/api/v1/submissions/problems/${problemId}?size=${10}`,
+    `http://submission.localhost/api/v1/submissions/problems/${problemId}?page=${page}&size=${3}`,
   );
+
 
   return (
 
@@ -26,15 +38,52 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             {loading ? (
-              <Spinner />
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-[68px] w-full" />
+                <Skeleton className="h-[68px] w-full" />
+                <Skeleton className="h-[68px] w-full" />
+              </div>
             ) : submissions ? (
-              submissions.submissions.content.map((submission) => (
-                <Submission
-                  key={"problem_submission_" + submission.submission_id}
-                  id={submission.submission_id}
-                  status={submission.status}
-                />
-              ))
+              <>
+                {submissions.submissions.content.map((submission: any) => (
+                  <Submission
+                    key={"problem_submission_" + submission.submission_id}
+                    id={submission.submission_id}
+                    status={submission.status}
+                  />
+                ))}
+                {submissions.submissions.total_pages > 1 && (
+                  <Pagination className="mt-4">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => {
+                            if (!submissions.submissions.is_first) {
+                              setSearchParams({ page: (page - 1).toString() });
+                            }
+                          }}
+                          className={submissions.submissions.is_first ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      <PaginationItem>
+                        <span className="text-sm text-muted-foreground mx-4">
+                          Page {submissions.submissions.page_number + 1} of {submissions.submissions.total_pages}
+                        </span>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => {
+                            if (!submissions.submissions.is_last) {
+                              setSearchParams({ page: (page + 1).toString() });
+                            }
+                          }}
+                          className={submissions.submissions.is_last ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
             ) : (
               <div className="flex justify-center items-center w-full h-full">
                 {error ? <Error error={error} /> : <p>Empty.</p>}
