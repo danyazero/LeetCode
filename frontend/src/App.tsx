@@ -2,13 +2,16 @@ import { createBrowserRouter } from "react-router";
 import "./index.css";
 import { ProblemsPage } from "./pages/ProblemsPage";
 import { type IProblem, ProblemPage } from "./pages/ProblemPage";
+import { CreateProblemPage } from "./pages/CreateProblemPage";
 import { RouterProvider } from "react-router";
 import axios from "axios";
 import type { SubmissionStatus } from "./shared/Submission";
 
-export interface SubmissionsResponse {
-  submissions: Page<ISubmission>;
-  is_accepted: boolean;
+// This will be used for the new submissions list endpoint
+export type SubmissionsPage = Page<ISubmission>;
+
+export interface ProblemStatus {
+  is_solved: boolean;
 }
 
 export interface Page<T> {
@@ -32,6 +35,10 @@ export function App() {
     {
       path: "/",
       Component: ProblemsPage,
+    },
+    {
+      path: "/create-problem",
+      Component: CreateProblemPage,
     },
     {
       path: "problem/:id",

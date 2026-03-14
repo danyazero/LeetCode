@@ -1,14 +1,12 @@
 package com.danyazero.submissionservice.controller;
 
 import com.danyazero.submissionservice.entity.Submission;
+import com.danyazero.submissionservice.model.AuthenticatedUser;
 import com.danyazero.submissionservice.model.SubmissionDto;
-import com.danyazero.submissionservice.model.SubmissionsResponse;
 import com.danyazero.submissionservice.service.SubmissionService;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -24,37 +22,11 @@ public class SubmissionController {
         return submissionService.findBySubmissionId(submissionId);
     }
 
-    @GetMapping("/problems/{problemId}")
-    public SubmissionsResponse getProblemSubmissions(
-        @PathVariable Integer problemId,
-        @RequestParam(required = false, defaultValue = "0") Integer page,
-        @RequestParam(required = false, defaultValue = "5") Integer size,
-        JwtAuthenticationToken authenticationToken
-    ) {
-        var userId = UUID.fromString(
-            authenticationToken.getToken().getClaimAsString("uid")
-        );
-
-        return submissionService.findByProblemId(
-            problemId,
-            userId,
-            PageRequest.of(page, size)
-        );
-    }
-
     @PostMapping
     public Submission createSubmission(
         @RequestBody SubmissionDto submissionDto,
-        JwtAuthenticationToken authenticationToken
+        @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        log.info(
-            "Create submission request from user {}",
-            authenticationToken.getToken().getClaimAsString("uid")
-        );
-        var userId = UUID.fromString(
-            authenticationToken.getToken().getClaimAsString("uid")
-        );
-
-        return submissionService.createSubmission(userId, submissionDto);
+        return submissionService.createSubmission(user.getId(), submissionDto);
     }
 }

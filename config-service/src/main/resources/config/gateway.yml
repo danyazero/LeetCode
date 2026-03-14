@@ -21,29 +21,11 @@ spring:
               predicates:
                 - Host=problem.localhost
                 - Path=/api/**
-              metadata:
-                cors:
-                  allowedOrigins:
-                    - "http://localhost"
-                    - "http://swagger.localhost"
-                  allowedMethods:
-                    - GET
-                    - POST
-                  allowedHeaders: "*"
             - id: submission-service
               uri: lb://submission
               predicates:
                 - Host=submission.localhost
                 - Path=/api/**
-              metadata:
-                cors:
-                  allowedOrigins:
-                    - "http://localhost"
-                    - "http://swagger.localhost"
-                  allowedMethods:
-                    - GET
-                    - POST
-                  allowedHeaders: "*"
 
 springdoc:
   swagger-ui:

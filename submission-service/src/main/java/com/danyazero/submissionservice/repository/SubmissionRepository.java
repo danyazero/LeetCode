@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SubmissionRepository extends JpaRepository<Submission, Integer> {
@@ -14,6 +15,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     @Query("select count(s.id) from Submission s where s.problemId = ?1")
     int getSubmissionsCount(Integer problemId);
+
+    Optional<Submission> findFirstByProblemIdAndStatus(Integer problemId, SubmissionStatus status);
 
     @Query("select count(s.id) from Submission s where s.problemId = ?1 and s.status = ?2")
     int getSubmissionsCountByCurrentType(Integer problemId, SubmissionStatus submissionStatus);

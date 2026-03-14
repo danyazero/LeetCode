@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface TestcaseRepository extends JpaRepository<Testcase, Integer> {
     List<Testcase> getAllByProblem_Id(Integer problemId);
+    void deleteAllByProblem_Id(Integer problemId);
 
     List<Testcase> findByProblem_IdAndIsPublic(Integer problemId, boolean isPublic);
 }

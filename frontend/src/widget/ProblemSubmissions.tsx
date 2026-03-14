@@ -14,14 +14,19 @@ import {
 } from "@/components/ui/pagination";
 import { useSearchParams } from "react-router";
 import { useProblemStore } from "@/features/Problem/store/useProblemStore";
+import type { ProblemStatus, SubmissionsPage } from "@/App";
 
 export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "0", 10);
   const submissionCount = useProblemStore((state) => state.submissionCount);
 
-  const { loading, submissions, error } = useQuery(
-    `http://submission.localhost/api/v1/submissions/problems/${problemId}?page=${page}&size=${3}&_refresh=${submissionCount}`,
+  const { loading: loadingSubmissions, data: submissions, error: errorSubmissions } = useQuery<SubmissionsPage>(
+    `http://submission.localhost/api/v1/problems/${problemId}?page=${page}&size=${3}&_refresh=${submissionCount}`,
+  );
+
+  const { loading: loadingStatus, data: status, error: errorStatus } = useQuery<ProblemStatus>(
+    `http://submission.localhost/api/v1/problems/${problemId}/status?_refresh=${submissionCount}`,
   );
 
 
@@ -30,12 +35,12 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
     <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden">
       <CardHeader className="px-5 flex flex-row justify-between">
         <h3 className="text-base font-semibold leading-snug tracking-tight">Testing</h3>
-        {loading ? (
+        {loadingStatus ? (
           <Skeleton className="h-5 w-16 rounded-full" />
-        ) : error ? null : submissions ? (
-          <Badge 
-            title={submissions.is_accepted ? "Solved" : "Unsolved"} 
-            variant={submissions.is_accepted ? "Easy" : "Hard"} 
+        ) : errorStatus ? null : status ? (
+          <Badge
+            title={status.is_solved ? "Solved" : "Unsolved"}
+            variant={status.is_solved ? "Easy" : "Hard"}
           />
         ) : null}
       </CardHeader>
@@ -46,7 +51,7 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
       <CardContent className="px-5 overflow-y-auto h-full">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            {loading ? (
+            {loadingSubmissions ? (
               <div className="flex flex-col gap-2">
                 <Skeleton className="h-[68px] w-full" />
                 <Skeleton className="h-[68px] w-full" />
@@ -54,39 +59,39 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
               </div>
             ) : submissions ? (
               <>
-                {submissions.submissions.content.map((submission: any) => (
+                {submissions.content.map((submission: any) => (
                   <Submission
                     key={"problem_submission_" + submission.submission_id}
                     id={submission.submission_id}
                     status={submission.status}
                   />
                 ))}
-                {submissions.submissions.total_pages > 1 && (
+                {submissions.total_pages > 1 && (
                   <Pagination className="mt-4">
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
                           onClick={() => {
-                            if (!submissions.submissions.is_first) {
+                            if (!submissions.is_first) {
                               setSearchParams({ page: (page - 1).toString() });
                             }
                           }}
-                          className={submissions.submissions.is_first ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={submissions.is_first ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
                       <PaginationItem>
                         <span className="text-sm text-muted-foreground mx-4">
-                          Page {submissions.submissions.page_number + 1} of {submissions.submissions.total_pages}
+                          Page {submissions.page_number + 1} of {submissions.total_pages}
                         </span>
                       </PaginationItem>
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => {
-                            if (!submissions.submissions.is_last) {
+                            if (!submissions.is_last) {
                               setSearchParams({ page: (page + 1).toString() });
                             }
                           }}
-                          className={submissions.submissions.is_last ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={submissions.is_last ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -95,7 +100,7 @@ export const ProblemSubmissions = ({ problemId }: { problemId: number }) => {
               </>
             ) : (
               <div className="flex justify-center items-center w-full h-full">
-                {error ? <Error error={error} /> : <p>Empty.</p>}
+                {errorSubmissions ? <Error error={errorSubmissions} /> : <p>Empty.</p>}
               </div>
             )}
           </div>

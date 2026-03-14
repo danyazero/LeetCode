@@ -7,6 +7,10 @@ import com.danyazero.submissionservice.model.*;
 import com.danyazero.submissionservice.repository.EventRepository;
 import com.danyazero.submissionservice.repository.LanguageRepository;
 import com.danyazero.submissionservice.repository.SubmissionRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,88 +19,112 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
-    private final KafkaTemplate<String, SubmissionCreatedEvent> submissionKafkaTemplate;
+
+    private final KafkaTemplate<
+        String,
+        SubmissionCreatedEvent
+    > submissionKafkaTemplate;
     private final SubmissionRepository submissionRepository;
     private final LanguageRepository languageRepository;
     private final EventRepository eventRepository;
-
-    public Submission findBySubmissionId(int id) {
-        return submissionRepository.findById(id)
-                .orElseThrow(() -> new RequestException("Submission with id " + id + " not found."));
+    
+    public ProblemStatus getProblemStatus(int problemId) {
+        var isSolved = submissionRepository.findFirstByProblemIdAndStatus(problemId, SubmissionStatus.ACCEPTED).isPresent();
+        
+        return new ProblemStatus(isSolved);
     }
 
-    public SubmissionsResponse findByProblemId(int problemId, UUID userId, Pageable pageable) {
-        final var submissions = submissionRepository.findAllByProblemIdAndUserIdOrderByIdDesc(problemId, userId, pageable);
-        final var isAccepted = submissionRepository.existsSubmissionByUserIdAndStatus(userId, SubmissionStatus.ACCEPTED);
+    public Submission findBySubmissionId(int id) {
+        return submissionRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new RequestException("Submission with id " + id + " not found.")
+            );
+    }
 
-        return SubmissionsResponse.builder()
-                .submissions(castSubmissionsPage(submissions))
-                .isAccepted(isAccepted)
-                .build();
+    public PageDto<SubmissionResponseDto> findByProblemId(
+        int problemId,
+        UUID userId,
+        Pageable pageable
+    ) {
+        return castSubmissionsPage(
+            submissionRepository.findAllByProblemIdAndUserIdOrderByIdDesc(
+                problemId,
+                userId,
+                pageable
+            )
+        );
     }
 
     public void updateSubmissionStatus(
-            Integer submissionId,
-            SubmissionStatus submissionStatus
+        Integer submissionId,
+        SubmissionStatus submissionStatus
     ) {
         var submission = findBySubmissionId(submissionId);
         submission.setStatus(submissionStatus);
         submissionRepository.save(submission);
 
         var submissionEvent = Event.builder()
-                .status(submissionStatus)
-                .createdAt(Instant.now())
-                .submission(submission)
-                .build();
+            .status(submissionStatus)
+            .createdAt(Instant.now())
+            .submission(submission)
+            .build();
         eventRepository.save(submissionEvent);
     }
 
     @Transactional
     public Submission createSubmission(
-            UUID userId,
-            SubmissionDto submissionDto
+        UUID userId,
+        SubmissionDto submissionDto
     ) {
-        var language = languageRepository.findById(submissionDto.languageId())
-                .orElseThrow(() -> new RequestException("Language with id " + submissionDto.languageId() + " not found."));
+        log.info("Create submission request from user {}", userId);
+        
+        var language = languageRepository
+            .findById(submissionDto.languageId())
+            .orElseThrow(() ->
+                new RequestException(
+                    "Language with id " +
+                        submissionDto.languageId() +
+                        " not found."
+                )
+            );
 
         var submission = Submission.builder()
-                .problemId(submissionDto.problemId())
-                .solution(submissionDto.solution())
-                .status(SubmissionStatus.CREATED)
-                .createdAt(Instant.now())
-                .language(language)
-                .userId(userId)
-                .build();
+            .problemId(submissionDto.problemId())
+            .solution(submissionDto.solution())
+            .status(SubmissionStatus.CREATED)
+            .createdAt(Instant.now())
+            .language(language)
+            .userId(userId)
+            .build();
 
         var createdSubmission = submissionRepository.save(submission);
-        log.info("Submission with id {} has been created.", createdSubmission.getId());
+        log.info(
+            "Submission with id {} has been created.",
+            createdSubmission.getId()
+        );
 
         var submissionEvent = Event.builder()
-                .status(SubmissionStatus.CREATED)
-                .submission(createdSubmission)
-                .createdAt(Instant.now())
-                .build();
+            .status(SubmissionStatus.CREATED)
+            .submission(createdSubmission)
+            .createdAt(Instant.now())
+            .build();
 
         var eventData = SubmissionCreatedEventDto.builder()
-                .submissionId(createdSubmission.getId())
-                .problemId(submissionDto.problemId())
-                .solution(submissionDto.solution())
-                .language(language.getLanguage())
-                .build();
+            .submissionId(createdSubmission.getId())
+            .problemId(submissionDto.problemId())
+            .solution(submissionDto.solution())
+            .language(language.getLanguage())
+            .build();
 
         produceSubmissionCreatedEvent(eventData);
 
         createdSubmission.setEvents(
-                Set.of(eventRepository.save(submissionEvent))
+            Set.of(eventRepository.save(submissionEvent))
         );
 
         log.info("Submission CREATED event has been saved.");
@@ -104,36 +132,41 @@ public class SubmissionService {
         return createdSubmission;
     }
 
-    private void produceSubmissionCreatedEvent(SubmissionCreatedEventDto eventData) {
-
+    private void produceSubmissionCreatedEvent(
+        SubmissionCreatedEventDto eventData
+    ) {
         var submissionCreatedEvent = new SubmissionCreatedEvent(
-                SubmissionStatus.CREATED.getValue(),
-                1,
-                eventData
+            SubmissionStatus.CREATED.getValue(),
+            1,
+            eventData
         );
-        submissionKafkaTemplate.sendDefault(
-                submissionCreatedEvent
-        ).thenAccept(res ->
+        submissionKafkaTemplate
+            .sendDefault(submissionCreatedEvent)
+            .thenAccept(res ->
                 log.info(
-                        "Submission CREATED event {} has been produced. (topic={})",
-                        submissionCreatedEvent.getEventId(),
-                        res.getRecordMetadata().topic()
-                ));
+                    "Submission CREATED event {} has been produced. (topic={})",
+                    submissionCreatedEvent.getEventId(),
+                    res.getRecordMetadata().topic()
+                )
+            );
     }
 
-    private PageDto<SubmissionResponseDto> castSubmissionsPage(Page<Submission> submissions) {
-        List<SubmissionResponseDto> content = submissions.getContent()
-                .stream()
-                .map(SubmissionResponseDto::from)
-                .toList();
+    private PageDto<SubmissionResponseDto> castSubmissionsPage(
+        Page<Submission> submissions
+    ) {
+        List<SubmissionResponseDto> content = submissions
+            .getContent()
+            .stream()
+            .map(SubmissionResponseDto::from)
+            .toList();
 
         return PageDto.<SubmissionResponseDto>builder()
-                .pageNumber(submissions.getPageable().getPageNumber())
-                .pageSize(submissions.getPageable().getPageSize())
-                .totalPages(submissions.getTotalPages())
-                .isFirst(submissions.isFirst())
-                .isLast(submissions.isLast())
-                .content(content)
-                .build();
+            .pageNumber(submissions.getPageable().getPageNumber())
+            .pageSize(submissions.getPageable().getPageSize())
+            .totalPages(submissions.getTotalPages())
+            .isFirst(submissions.isFirst())
+            .isLast(submissions.isLast())
+            .content(content)
+            .build();
     }
 }

@@ -1,18 +1,26 @@
-import type { SubmissionsResponse } from "@/App";
+import type { SubmissionsPage } from "@/App";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge, type Variant } from "@/shared/Badge";
 import { ProblemTag } from "@/shared/ProblemTag";
 import { Example } from "@/widget/Example";
 import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
-import { Link, useLoaderData } from "react-router";
+import { useNavigate, Link, useLoaderData } from "react-router";
 import { Editor } from "@/widget/Editor";
-import { useEffect } from "react";
-import { ArrowLeft, Play, Loader2 } from "lucide-react";
-import { keycloakContext } from "@/features/KeycloakWrapper";
-import { UserAvatar } from "@/shared/UserAvatar";
+import { useEffect, useState } from "react";
 import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 import { cn } from "@/lib/utils";
+import { ArrowLeft, Play, Loader2, Trash2, MoreHorizontal } from "lucide-react";
+import { keycloakContext } from "@/features/KeycloakWrapper";
+import { Header } from "@/widget/Header";
+import { Button } from "@/components/ui/button";
+import { deleteProblem } from "@/api/problems";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface IProblem {
   id: number;
@@ -35,14 +43,29 @@ export interface ITestcase {
 
 export interface ProblemData {
   problem: IProblem;
-  submissions: SubmissionsResponse | null;
+  submissions: SubmissionsPage | null;
 }
 
 export const ProblemPage = () => {
   const data = useLoaderData<IProblem>();
+  const navigate = useNavigate();
   const submitSolution = useProblemStore((state) => state.submitSolution);
   const isSubmitting = useProblemStore((state) => state.isSubmitting);
   const setCode = useProblemStore((state) => state.setCode);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteProblem(data.id);
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to delete problem:", error);
+      alert("Failed to delete problem.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     setCode(""); // Clear code on mount
@@ -53,44 +76,8 @@ export const ProblemPage = () => {
   }
 
   return (
-    <div className="flex flex-col px-6 h-screen">
-      <div className="flex flex-row py-5 gap-4 items-center justify-between">
-        <div className="flex flex-row gap-4 items-center">
-          <Link to="/" className="hover:cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size="1.25rem" />
-          </Link>
-          <ProblemTag id={data.id} isCompleted={true} />
-          <p className="text-base font-medium">{data.title}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {keycloakContext.authenticated ? (
-            <>
-              <UserAvatar username={keycloakContext.idTokenParsed?.preferred_username} />
-              <button
-                onClick={() => keycloakContext.logout()}
-                className="text-sm font-medium hover:cursor-pointer hover:text-muted-foreground transition-colors"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => keycloakContext.login()}
-                className="text-sm font-medium hover:cursor-pointer hover:text-muted-foreground transition-colors"
-              >
-                Sign in
-              </button>
-              <button
-                onClick={() => keycloakContext.register()}
-                className="text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Sign up
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col h-screen overflow-hidden gap-2">
+      <Header />
       <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
         <Card className="relative w-full border border-border/60 bg-card overflow-hidden">
           <CardHeader className="px-5">
@@ -98,6 +85,30 @@ export const ProblemPage = () => {
               <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
                 {data.title}
               </h3>
+              {keycloakContext.authenticated && keycloakContext.tokenParsed?.roles?.includes("problem.edit_problems") && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete problem</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Badge title={data.difficulty.value} variant={data.difficulty.value as Variant} />
             </div>
           </CardHeader>

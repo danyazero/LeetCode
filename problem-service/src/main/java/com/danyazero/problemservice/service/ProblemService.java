@@ -55,6 +55,7 @@ public class ProblemService {
 
     @Transactional
     public void deleteProblem(Integer problemId) {
+        testcaseRepository.deleteAllByProblem_Id(problemId);
         problemRepository.deleteById(problemId);
     }
 
