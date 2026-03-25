@@ -1,9 +1,5 @@
 FROM openjdk:26-ea-slim-trixie
 
-RUN apt-get update && apt-get install -y --no-install-recommends\
-    wget \
- && rm -rf /var/lib/apt/lists/*
- 
 ARG DEPENDENCY=build/dependency
 COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY ${DEPENDENCY}/META-INF /app/META-INF

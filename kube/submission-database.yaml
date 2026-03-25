@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: submission-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: submission-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: submission-database
+  template:
+    metadata:
+      labels:
+        app: submission-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: submission-db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: submission-db-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: submission-db-password
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "submission", "-d", "submissiondb"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: submission-db-storage
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: submission-db-storage
+          persistentVolumeClaim:
+            claimName: submission-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: submission-database
+spec:
+  selector:
+    app: submission-database
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP

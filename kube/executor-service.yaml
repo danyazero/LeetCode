@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: executor
+  template:
+    metadata:
+      labels:
+        app: executor
+    spec:
+      containers:
+        - name: executor
+          image: executor-service:latest
+          imagePullPolicy: Never
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+              add: ["SETFCAP", "SETGID"]
+            allowPrivilegeEscalation: false
+          securityContext:
+            seccompProfile:
+              type: Unconfined       # аналог seccomp=unconfined
+            capabilities:
+              drop: ["ALL"]
+              add: ["SETFCAP", "SETGID"]
+            allowPrivilegeEscalation: false
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: executor
+spec:
+  selector:
+    app: executor
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

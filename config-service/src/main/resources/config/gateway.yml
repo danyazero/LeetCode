@@ -16,6 +16,11 @@ spring:
               uri: http://keycloak:8080
               predicates:
                 - Host=auth.localhost
+              filters:
+                - PreserveHostHeader
+                - AddRequestHeader=X-Forwarded-Host, auth.localhost
+                - AddRequestHeader=X-Forwarded-Proto, http
+                - AddRequestHeader=X-Forwarded-Port, 80
             - id: problem-service
               uri: lb://problem
               predicates:

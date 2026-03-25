@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: problem-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: problem-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: problem-database
+  template:
+    metadata:
+      labels:
+        app: problem-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: problem-db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: problem-db-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: problem-db-password
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "problem", "-d", "problemdb"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: problem-db-storage
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: problem-db-storage
+          persistentVolumeClaim:
+            claimName: problem-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: problem-database
+spec:
+  selector:
+    app: problem-database
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP

@@ -42,7 +42,7 @@ export const ProblemsPage = () => {
   return (
     <div className="flex flex-col w-full h-screen">
       <Header>
-        <button onClick={() => console.log(keycloakContext.tokenParsed?.roles)}>Token</button>
+        <button onClick={() => console.log(keycloakContext.token)}>Token</button>
 
       </Header>
       <div className="flex flex-row justify-center w-full overflow-y-auto">

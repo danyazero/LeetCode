@@ -2,8 +2,9 @@ package com.danyazero.gatewayservice.filter;
 
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class CustomCorsFilter implements WebFilter, Ordered {
+    private static final Logger log = LoggerFactory.getLogger(CustomCorsFilter.class);
 
     private static final List<String> CORS_ENABLED_ROUTES = Arrays.asList(
         "problem.localhost",
@@ -32,13 +34,24 @@ public class CustomCorsFilter implements WebFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        log.info("New request -> {}", request.getId());
         String origin = request.getHeaders().getOrigin();
+        if (origin == null) {
+            log.info("Request {}: Request origin is null, skipping filter.", request.getId());
+            return chain.filter(exchange);
+        }
 
-        var host = exchange.getRequest().getHeaders().getHost().getHostName();
+        log.info("Request {}: From origin: {}", request.getId(), origin);
+
+        var host = exchange.getRequest().getHeaders().getHost();
+        if (host == null) {
+            log.info("Request {}: Request hostname is null, skipping filter.", request.getId());
+            return chain.filter(exchange);
+        }
+        log.info("Request {}: Request has next hostname -> {}", request.getId(), host.getHostName());
 
         if (
-            origin != null &&
-            CORS_ENABLED_ROUTES.contains(host) &&
+            CORS_ENABLED_ROUTES.contains(host.getHostName()) &&
             ALLOWED_ORIGINS.contains(origin)
         ) {
             ServerHttpResponse response = exchange.getResponse();
