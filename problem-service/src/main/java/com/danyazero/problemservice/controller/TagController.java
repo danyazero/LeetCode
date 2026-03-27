@@ -3,9 +3,8 @@ package com.danyazero.problemservice.controller;
 import com.danyazero.problemservice.entity.Tag;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.TagDto;
-import com.danyazero.problemservice.repository.TagRepository;
+import com.danyazero.problemservice.service.TagService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,43 +12,35 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/tags")
 @RequiredArgsConstructor
 public class TagController {
-    private final TagRepository tagRepository;
+
+    private final TagService tagService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('problem.edit_tags')")
     public Tag createTopicTag(@RequestBody TagDto tagDto) {
-        System.out.println(tagDto);
-        var tagEntity = Tag.builder()
-                .value(tagDto.tag())
-                .build();
-
-        return tagRepository.save(tagEntity);
+        return tagService.createTag(tagDto);
     }
 
     @GetMapping("/{query}")
     public PageDto<Tag> getTagsByQuery(
-            @PathVariable String query,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size
+        @PathVariable String query,
+        @RequestParam(required = false, defaultValue = "0") Integer page,
+        @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
-        var foundedTagsPage = tagRepository.findAllByValueIsContainingIgnoreCase(query, PageRequest.of(page, size));
-
-        return PageDto.of(foundedTagsPage);
+        return tagService.getTagsByQuery(query, page, size);
     }
 
     @GetMapping
     public PageDto<Tag> findAll(
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size
+        @RequestParam(required = false, defaultValue = "0") Integer page,
+        @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
-        var tagPage = tagRepository.findAll(PageRequest.of(page, size));
-
-        return PageDto.of(tagPage);
+        return tagService.getTags(page, size);
     }
 
     @DeleteMapping("/{tagId}")
     @PreAuthorize("hasAuthority('problem.edit_tags')")
     public void deleteById(@PathVariable int tagId) {
-        tagRepository.deleteById(tagId);
+        tagService.deleteTag(tagId);
     }
 }

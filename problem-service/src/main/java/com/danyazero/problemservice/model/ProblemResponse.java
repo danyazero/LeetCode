@@ -14,5 +14,5 @@ public record ProblemResponse(
         Set<Tag> tags,
         String description,
         Difficulty difficulty,
-        List<TestcaseDto> testcases
+        List<TestDto> testcases
 ) { }

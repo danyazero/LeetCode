@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProblemController {
 
-    private final ProblemService service;
+    private final ProblemService problemService;
 
     @GetMapping("/{problemId}")
     public ProblemResponse getProblemById(@PathVariable Integer problemId) {
-        return service.getProblemById(problemId);
+        return problemService.getProblemById(problemId);
     }
 
     @GetMapping
@@ -29,16 +29,16 @@ public class ProblemController {
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(required = false, defaultValue = "10") Integer size
     ) {
-        return service.findProblems(query, tag, difficulty, page, size);
+        return problemService.findProblems(query, tag, difficulty, page, size);
     }
 
     @PostMapping
     public Problem createProblem(@RequestBody CreateProblemDto problem) {
-        return service.createProblem(problem);
+        return problemService.createProblem(problem);
     }
 
     @DeleteMapping("/{problemId}")
     public void deleteProblem(@PathVariable Integer problemId) {
-        service.deleteProblem(problemId);
+        problemService.deleteProblem(problemId);
     }
 }

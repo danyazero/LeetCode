@@ -4,7 +4,7 @@ import com.danyazero.problemservice.entity.Problem;
 import com.danyazero.problemservice.entity.Testcase;
 import java.time.Instant;
 
-public record TestcaseDto(
+public record TestDto(
     String input,
     String expected,
     Integer problemId,
@@ -20,8 +20,8 @@ public record TestcaseDto(
             .build();
     }
 
-    public static TestcaseDto toDto(Testcase testcase) {
-        return new TestcaseDto(
+    public static TestDto toDto(Testcase testcase) {
+        return new TestDto(
             testcase.getInput(),
             testcase.getExpected(),
             testcase.getProblemId(),
