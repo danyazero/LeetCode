@@ -17,6 +17,34 @@ public class StatusEventProducer {
         String,
         SubmissionUpdatedEvent
     > submissionKafkaTemplate;
+    
+    public void internalError(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.INTERNAL_ERROR);
+    }
+    
+    public void wrongAnswer(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.WRONG_ANSWER);
+    }
+    
+    public void accepted(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.ACCEPTED);
+    }
+    
+    public void compiled(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.COMPILED);
+    }
+    
+    public void compilationError(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.COMPILATION_ERROR);
+    }
+
+    public void unsupportedLanguage(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.UNSUPPORTED_LANGUAGE);
+    }
+
+    public void timeLimitExceeded(int problemId, int submissionId) {
+        this.accept(problemId, submissionId, SubmissionStatus.TIME_LIMIT_EXCEEDED);
+    }
 
     public void accept(
         Integer problemId,

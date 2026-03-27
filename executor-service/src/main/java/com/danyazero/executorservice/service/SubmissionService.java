@@ -23,41 +23,64 @@ public class SubmissionService {
                 compiler -> processSubmission(submission, compiler),
                 () -> {
                     log.info("Compiler for language - '{}' not found", submission.language());
-                    statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.UNSUPPORTED_LANGUAGE);
+                    statusEventProducer.unsupportedLanguage(submission.problemId(), submission.id());
                 }
         );
     }
 
     public void processSubmission(SubmissionCreated submission, Compiler executor) {
-        final var compiledProgram = compileSolution(executor, submission);
-        if (compiledProgram.isEmpty()) return;
+        if (submission == null) {
+            log.warn("Received null submission");
+            return;
+        }
 
-        final var testcases = problemClient.getProblemTestcases(submission.problemId());
-        for (var testcase : testcases) {
-            final var output = runTestcase(compiledProgram.get(), testcase.input(), submission.problemId(), submission.id());
-            if (isNotEqualsExpected(output, testcase.expected())) {
-                log.info("Wrong answer for submission {} -> {}, expected -> {}",
-                        submission.id(), output, testcase.expected());
+        final var compiledProgramOpt = compileSolution(executor, submission);
+        if (compiledProgramOpt.isEmpty()) return;
 
-                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.WRONG_ANSWER);
-                compiledProgram.get().cleanup();
+        CompiledProgram compiledProgram = compiledProgramOpt.get();
+
+        try {
+            final var testcases = problemClient.getProblemTestcases(submission.problemId());
+            if (testcases == null || testcases.isEmpty()) {
+                log.warn("No testcases found for problem {}", submission.problemId());
+                statusEventProducer.internalError(submission.problemId(), submission.id());
                 return;
             }
+
+            for (var testcase : testcases) {
+                final var outputOpt = runTestcase(compiledProgram, testcase.input(), submission.problemId(), submission.id());
+                
+                if (outputOpt.isEmpty()) {
+                    return; 
+                }
+
+                if (isNotEqualsExpected(outputOpt.get(), testcase.expected())) {
+                    log.info("Wrong answer for submission {} -> {}, expected -> {}",
+                            submission.id(), outputOpt.get(), testcase.expected());
+
+                    statusEventProducer.wrongAnswer(submission.problemId(), submission.id());
+                    return;
+                }
+            }
+            statusEventProducer.accepted(submission.problemId(), submission.id());
+        } catch (Exception e) {
+            log.error("Error processing testcases for submission {}", submission.id(), e);
+            statusEventProducer.internalError(submission.problemId(), submission.id());
+        } finally {
+            compiledProgram.cleanup();
         }
-        compiledProgram.get().cleanup();
-        statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.ACCEPTED);
     }
 
     private Optional<CompiledProgram> compileSolution(Compiler compiler, SubmissionCreated submission) {
         return switch (compiler.compile(submission.solution())) {
             case CompilationResult.Failure error -> {
-                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.COMPILATION_ERROR);
+                statusEventProducer.compilationError(submission.problemId(), submission.id());
                 log.info("Compilation failed for submission - {}, with error: {}", submission.id(), error.message());
 
                 yield Optional.empty();
             }
             case CompilationResult.Success result -> {
-                statusEventProducer.accept(submission.problemId(), submission.id(), SubmissionStatus.COMPILED);
+                statusEventProducer.compiled(submission.problemId(), submission.id());
                 log.info("Compilation completed successfully");
 
                 yield Optional.of(result.program());
@@ -66,23 +89,24 @@ public class SubmissionService {
     }
 
     private Optional<String> runTestcase(CompiledProgram compiledProgram, String input, int problemId, int submissionId) {
-
-        return switch (compiledProgram.execute(List.of(input.split(", ")), 2)) {
+        List<String> params = input != null && !input.isBlank() ? List.of(input.split(", ")) : List.of();
+        
+        return switch (compiledProgram.execute(params, 2)) {
             case ExecutionResult.Failure error -> {
                 log.info("Execution error for submission {}: {}", submissionId, error.message());
-                statusEventProducer.accept(problemId, submissionId, SubmissionStatus.INTERNAL_ERROR);
+                statusEventProducer.internalError(problemId, submissionId);
 
                 yield Optional.empty();
             }
             case ExecutionResult.Timeout ignored -> {
                 log.info("Time limit exceeded for submission {}", submissionId);
-                statusEventProducer.accept(problemId, submissionId, SubmissionStatus.TIME_LIMIT_EXCEEDED);
+                statusEventProducer.timeLimitExceeded(problemId, submissionId);
 
                 yield Optional.empty();
             }
             case ExecutionResult.Success result -> {
-                final var output = formatExecutionResult(result.output());
-                log.info("Submission {} testcase result: {}", submissionId, result.output());
+                final var output = result.output() != null ? formatExecutionResult(result.output()) : "";
+                log.info("Submission {} testcase result: {}", submissionId, output);
 
                 yield Optional.of(output);
             }
@@ -97,7 +121,8 @@ public class SubmissionService {
                         .toList());
     }
 
-    private static boolean isNotEqualsExpected(Optional<String> output, String expected) {
-        return output.isPresent() && !output.get().equals(expected);
+    private static boolean isNotEqualsExpected(String output, String expected) {
+        if (output == null) return expected != null;
+        return !output.equals(expected);
     }
 }
