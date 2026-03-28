@@ -36,7 +36,7 @@ public class ProblemController {
         @RequestParam(required = false, defaultValue = "5") Integer size,
         @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        return submissionService.findByProblemId(
+        return submissionService.getSubmissions(
             problemId,
             user.getId(),
             PageRequest.of(page, size)

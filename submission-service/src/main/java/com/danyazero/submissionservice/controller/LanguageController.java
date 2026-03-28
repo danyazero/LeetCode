@@ -2,25 +2,25 @@ package com.danyazero.submissionservice.controller;
 
 import com.danyazero.submissionservice.entity.Language;
 import com.danyazero.submissionservice.model.LanguageDto;
-import com.danyazero.submissionservice.repository.LanguageRepository;
+import com.danyazero.submissionservice.service.LanguageService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/languages")
 public class LanguageController {
-    private final LanguageRepository languageRepository;
+
+    private final LanguageService languageService;
 
     @GetMapping
     public List<Language> findAll() {
-        return languageRepository.findAll();
+        return languageService.getLanguages();
     }
 
     @PostMapping
     public Language save(@RequestBody LanguageDto language) {
-        return languageRepository.save(language.toEntity());
+        return languageService.createLanguage(language);
     }
 }

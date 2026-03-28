@@ -19,7 +19,7 @@ public class SubmissionController {
 
     @GetMapping("/{submissionId}")
     public Submission findById(@PathVariable Integer submissionId) {
-        return submissionService.findBySubmissionId(submissionId);
+        return submissionService.getSubmission(submissionId);
     }
 
     @PostMapping
