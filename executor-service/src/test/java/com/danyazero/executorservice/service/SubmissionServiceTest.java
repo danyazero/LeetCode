@@ -187,6 +187,26 @@ class SubmissionServiceTest {
         }
 
         @Test
+        @DisplayName("should handle ExecutionResult.Failure by emitting INTERNAL_ERROR and stopping subsequent testcases")
+        void shouldStopAfterInternalError() {
+            List<TestcaseDto> testcases = List.of(
+                    new TestcaseDto("1, 2", "3", 1),
+                    new TestcaseDto("2, 3", "5", 2)
+            );
+            when(problemClient.getProblemTestcases(PROBLEM_ID)).thenReturn(testcases);
+            
+            when(compiledProgram.execute(anyList(), anyInt())).thenReturn(new ExecutionResult.Failure("Runtime error"));
+
+            submissionService.processSubmission(defaultSubmission(), compiler);
+
+            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(compiledProgram, times(1)).execute(anyList(), anyInt());
+            verify(statusEventProducer, never()).accepted(anyInt(), anyInt());
+            verify(compiledProgram).cleanup();
+        }
+
+        @Test
         @DisplayName("should handle ExecutionResult.Failure by emitting INTERNAL_ERROR and stopping")
         void shouldHandleExecutionFailure() {
             List<TestcaseDto> testcases = List.of(new TestcaseDto("input", "expected", 1));

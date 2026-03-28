@@ -16,7 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
  && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/google/nsjail.git /tmp/nsjail \
- && make -C /tmp/nsjail \
+ && cd /tmp/nsjail \
+ && git checkout 3.6 \
+ && make \
  && mv /tmp/nsjail/nsjail /usr/local/bin/nsjail \
  && rm -rf /tmp/nsjail
 
