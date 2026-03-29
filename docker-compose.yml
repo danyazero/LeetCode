@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  registry:
+    image: registry:latest
+    restart: "always"
+    ports:
+      - "5050:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: jenkins
+    user: root  
+    networks:
+      - jenkins
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"
+
+networks:
+  jenkins:
+
+volumes:
+  jenkins-data:
+  registry-data:
