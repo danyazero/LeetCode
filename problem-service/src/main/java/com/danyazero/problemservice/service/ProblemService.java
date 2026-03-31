@@ -54,9 +54,9 @@ public class ProblemService {
         return ProblemResponse.builder()
             .description(problem.getDescription())
             .difficulty(problem.getDifficulty())
-            .testcases(publicTests)
             .title(problem.getTitle())
             .tags(problem.getTags())
+            .testcases(publicTests)
             .id(problem.getId())
             .build();
     }
@@ -95,7 +95,7 @@ public class ProblemService {
 
         return PageDto.of(
             problemRepository.findAll(spec, PageRequest.of(page, size)),
-            problem -> ProblemDto.map(problem)
+                ProblemDto::map
         );
     }
 

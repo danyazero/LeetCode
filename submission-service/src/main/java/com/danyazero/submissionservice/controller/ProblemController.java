@@ -5,6 +5,7 @@ import com.danyazero.submissionservice.model.PageDto;
 import com.danyazero.submissionservice.model.ProblemStatus;
 import com.danyazero.submissionservice.model.SubmissionResponseDto;
 import com.danyazero.submissionservice.service.SubmissionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,14 +23,16 @@ public class ProblemController {
     private final SubmissionService submissionService;
 
     @GetMapping("/{problemId}/status")
+    @SecurityRequirement(name = "bearerAuthorization")
     public ProblemStatus getProblemStatus(
         @PathVariable Integer problemId,
         @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        return submissionService.getProblemStatus(problemId);
+        return submissionService.getProblemStatus(user.getId(), problemId);
     }
 
     @GetMapping("/{problemId}")
+    @SecurityRequirement(name = "bearerAuthorization")
     public PageDto<SubmissionResponseDto> getProblemSubmissions(
         @PathVariable Integer problemId,
         @RequestParam(required = false, defaultValue = "0") Integer page,

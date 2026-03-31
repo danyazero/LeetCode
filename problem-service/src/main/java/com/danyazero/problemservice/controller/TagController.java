@@ -4,8 +4,8 @@ import com.danyazero.problemservice.entity.Tag;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.TagDto;
 import com.danyazero.problemservice.service.TagService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,7 +16,7 @@ public class TagController {
     private final TagService tagService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('problem.edit_tags')")
+    @SecurityRequirement(name = "bearerAuthorization")
     public Tag createTopicTag(@RequestBody TagDto tagDto) {
         return tagService.createTag(tagDto);
     }
@@ -39,7 +39,7 @@ public class TagController {
     }
 
     @DeleteMapping("/{tagId}")
-    @PreAuthorize("hasAuthority('problem.edit_tags')")
+    @SecurityRequirement(name = "bearerAuthorization")
     public void deleteById(@PathVariable int tagId) {
         tagService.deleteTag(tagId);
     }

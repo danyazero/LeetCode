@@ -53,6 +53,21 @@ public class Problem {
     private Integer acceptedSubmissions;
 
     public Double getAcceptanceRate() {
-        return (this.acceptedSubmissions.doubleValue() / this.sentSubmissions.doubleValue()) * 100.0;
+        if (this.sentSubmissions == null || this.acceptedSubmissions == null) {
+            return 0.0;
+        }
+        if (this.sentSubmissions <= 0 || this.acceptedSubmissions < 0) {
+            return 0.0;
+        }
+
+        final double validAcceptedSubmissions = Math.min(
+            this.acceptedSubmissions.doubleValue(),
+            this.sentSubmissions.doubleValue()
+        );
+
+        return (
+            (validAcceptedSubmissions / this.sentSubmissions.doubleValue()) *
+            100.0
+        );
     }
 }

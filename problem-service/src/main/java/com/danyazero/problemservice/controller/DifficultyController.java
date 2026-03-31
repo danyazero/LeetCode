@@ -4,6 +4,8 @@ import com.danyazero.problemservice.entity.Difficulty;
 import com.danyazero.problemservice.model.DifficultyDto;
 import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.service.DifficultyService;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,7 @@ public class DifficultyController {
     private final DifficultyService difficultyService;
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuthorization")
     public Difficulty createDifficulty(
         @RequestBody DifficultyDto difficultyDto
     ) {
@@ -30,7 +33,10 @@ public class DifficultyController {
     }
 
     @DeleteMapping("/{difficultyId}")
-    public void deleteById(@PathVariable int difficultyId) {
+    @SecurityRequirement(name = "bearerAuthorization")
+    public void deleteById(
+            @PathVariable int difficultyId
+    ) {
         difficultyService.deleteDifficulty(difficultyId);
     }
 }

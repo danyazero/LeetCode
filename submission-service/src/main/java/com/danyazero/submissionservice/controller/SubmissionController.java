@@ -4,6 +4,7 @@ import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.model.AuthenticatedUser;
 import com.danyazero.submissionservice.model.SubmissionDto;
 import com.danyazero.submissionservice.service.SubmissionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +24,7 @@ public class SubmissionController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuthorization")
     public Submission createSubmission(
         @RequestBody SubmissionDto submissionDto,
         @AuthenticationPrincipal AuthenticatedUser user

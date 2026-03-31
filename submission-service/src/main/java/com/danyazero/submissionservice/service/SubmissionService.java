@@ -62,9 +62,15 @@ public class SubmissionService {
         return submission;
     }
 
-    public ProblemStatus getProblemStatus(int problemId) {
+    public ProblemStatus getProblemStatus(UUID userId, Integer problemId) {
+        if (userId == null) {
+            throw new IllegalRequstArgumentException("Cannot provide problem status: User ID is null");
+        } else if (problemId == null) {
+            throw new IllegalRequstArgumentException("Cannot provide problem status: Problem ID is null");
+        }
+
         var isSolved = submissionRepository
-            .findFirstByProblemIdAndStatus(problemId, SubmissionStatus.ACCEPTED)
+            .findFirstByUserIdIsAndProblemIdAndStatus(userId, problemId, SubmissionStatus.ACCEPTED)
             .isPresent();
 
         return new ProblemStatus(isSolved);

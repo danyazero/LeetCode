@@ -4,6 +4,8 @@ import com.danyazero.submissionservice.entity.Language;
 import com.danyazero.submissionservice.model.LanguageDto;
 import com.danyazero.submissionservice.service.LanguageService;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,7 @@ public class LanguageController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuthorization")
     public Language save(@RequestBody LanguageDto language) {
         return languageService.createLanguage(language);
     }

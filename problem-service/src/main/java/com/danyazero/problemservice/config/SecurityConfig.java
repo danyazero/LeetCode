@@ -1,5 +1,8 @@
 package com.danyazero.problemservice.config;
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +16,13 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@SecurityScheme(
+        name = "bearerAuthorization",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT",
+        in = SecuritySchemeIn.HEADER
+)
 public class SecurityConfig {
     private final KeycloakJwtConverter jwtConverter;
 
@@ -31,6 +41,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/testcases/*").hasAuthority("problem.view_testcases")
 
                         .anyRequest().permitAll()
                 )

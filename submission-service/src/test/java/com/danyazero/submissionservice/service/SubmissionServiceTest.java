@@ -120,10 +120,10 @@ class SubmissionServiceTest {
         @Test
         @DisplayName("Should return solved true when an accepted submission exists")
         void getProblemStatus_Solved() {
-            when(submissionRepository.findFirstByProblemIdAndStatus(1, SubmissionStatus.ACCEPTED))
+            when(submissionRepository.findFirstByUserIdIsAndProblemIdAndStatus(userId, 1, SubmissionStatus.ACCEPTED))
                     .thenReturn(Optional.of(submission));
 
-            ProblemStatus status = submissionService.getProblemStatus(1);
+            ProblemStatus status = submissionService.getProblemStatus(userId, 1);
 
             assertTrue(status.isSolved());
         }
@@ -131,10 +131,10 @@ class SubmissionServiceTest {
         @Test
         @DisplayName("Should return solved false when no accepted submissions exist")
         void getProblemStatus_NotSolved() {
-            when(submissionRepository.findFirstByProblemIdAndStatus(1, SubmissionStatus.ACCEPTED))
+            when(submissionRepository.findFirstByUserIdIsAndProblemIdAndStatus(userId, 1, SubmissionStatus.ACCEPTED))
                     .thenReturn(Optional.empty());
 
-            ProblemStatus status = submissionService.getProblemStatus(1);
+            ProblemStatus status = submissionService.getProblemStatus(userId, 1);
 
             assertFalse(status.isSolved());
         }

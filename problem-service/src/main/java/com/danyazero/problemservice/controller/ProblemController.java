@@ -6,6 +6,7 @@ import com.danyazero.problemservice.model.PageDto;
 import com.danyazero.problemservice.model.ProblemDto;
 import com.danyazero.problemservice.model.ProblemResponse;
 import com.danyazero.problemservice.service.ProblemService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,11 +34,13 @@ public class ProblemController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuthorization")
     public Problem createProblem(@RequestBody CreateProblemDto problem) {
         return problemService.createProblem(problem);
     }
 
     @DeleteMapping("/{problemId}")
+    @SecurityRequirement(name = "bearerAuthorization")
     public void deleteProblem(@PathVariable Integer problemId) {
         problemService.deleteProblem(problemId);
     }

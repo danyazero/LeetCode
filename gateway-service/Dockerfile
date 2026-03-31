@@ -1,4 +1,5 @@
-FROM openjdk:26-ea-slim-trixie
+FROM eclipse-temurin:21-jre
+RUN apt install wget
 
 ARG DEPENDENCY=build/dependency
 COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib

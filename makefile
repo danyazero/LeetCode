@@ -1,8 +1,6 @@
-build-all:
-	make -C ./config-service build
-	make -C ./discovery-service build
-	make -C ./executor-service build
-	make -C ./problem-service build
-	make -C ./submission-service build
-	make -C ./gateway-service build
+SERVICES = config-service discovery-service gateway-service problem-service submission-service executor-service
 
+build:
+	@for svc in $(SERVICES); do \
+		make -C ./$$svc build; \
+	done
