@@ -1,20 +1,20 @@
 import type { SubmissionsPage } from "@/App";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ProblemTags } from "@/widget/ProblemTags";
 import { Badge, type Variant } from "@/shared/Badge";
-import { ProblemTag } from "@/shared/ProblemTag";
 import { Example } from "@/widget/Example";
 import { ProblemSubmissions } from "@/widget/ProblemSubmissions";
-import { useNavigate, Link, useLoaderData } from "react-router";
+import { useNavigate, useLoaderData } from "react-router";
 import { Editor } from "@/widget/Editor";
 import { useEffect, useState } from "react";
 import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Play, Loader2, Trash2, MoreHorizontal } from "lucide-react";
+import { Play, Loader2, Trash2, MoreHorizontal } from "lucide-react";
 import { keycloakContext } from "@/features/KeycloakWrapper";
 import { Header } from "@/widget/Header";
 import { Button } from "@/components/ui/button";
-import { deleteProblem } from "@/api/problems";
+import { deleteProblem, type Tag } from "@/api/problems";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +27,7 @@ export interface IProblem {
   title: string;
   description: string;
   difficulty: IDifficulty;
+  tags: Tag[];
   testcases: ITestcase[];
 }
 
@@ -111,6 +112,7 @@ export const ProblemPage = () => {
               )}
               <Badge title={data.difficulty.value} variant={data.difficulty.value as Variant} />
             </div>
+
           </CardHeader>
 
           <Separator
@@ -120,6 +122,7 @@ export const ProblemPage = () => {
 
           <CardContent className="px-5 overflow-y-auto h-full">
             <div className="flex flex-col gap-6">
+              <ProblemTags tags={data.tags} />
               <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
 
               <div className="flex flex-col gap-4">
