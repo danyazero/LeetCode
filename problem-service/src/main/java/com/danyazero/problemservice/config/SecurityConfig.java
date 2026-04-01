@@ -41,7 +41,6 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/testcases").hasAuthority("problem.edit_testcases")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/testcases/*").hasAuthority("problem.view_testcases")
 
                         .anyRequest().permitAll()
                 )

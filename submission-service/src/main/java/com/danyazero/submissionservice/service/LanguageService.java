@@ -4,9 +4,13 @@ import com.danyazero.submissionservice.entity.Language;
 import com.danyazero.submissionservice.exception.IllegalRequstArgumentException;
 import com.danyazero.submissionservice.exception.RequestException;
 import com.danyazero.submissionservice.mapper.LanguageMapper;
-import com.danyazero.submissionservice.model.LanguageDto;
+import com.danyazero.submissionservice.model.LanguageRequestDto;
+import com.danyazero.submissionservice.model.LanguageResponseDto;
 import com.danyazero.submissionservice.repository.LanguageRepository;
 import java.util.List;
+import java.util.UUID;
+
+import com.danyazero.submissionservice.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,9 +21,27 @@ import org.springframework.stereotype.Service;
 public class LanguageService {
 
     private final LanguageRepository languageRepository;
+    private final SubmissionRepository submissionRepository;
 
-    public List<Language> getLanguages() {
-        return languageRepository.findAll();
+    public LanguageResponseDto getLanguages(UUID userId) {
+        var languages = languageRepository.findAll();
+
+        if (userId == null) {
+            return new LanguageResponseDto(
+                    null,
+                    languages
+            );
+        }
+        var lastUsedLanguage = submissionRepository.findFirstByUserIdIsOrderByCreatedAtDesc(userId);
+
+        return lastUsedLanguage.map(submission -> new LanguageResponseDto(
+                submission.getLanguage().getId(),
+                languages
+        )).orElseGet(() -> new LanguageResponseDto(
+                null,
+                languages
+        ));
+
     }
 
     public Language getLanguage(Integer languageId) {
@@ -32,7 +54,7 @@ public class LanguageService {
             .orElseThrow(() -> languageNotFound(languageId));
     }
 
-    public Language createLanguage(LanguageDto language) {
+    public Language createLanguage(LanguageRequestDto language) {
         if (language == null) throw new IllegalRequstArgumentException(
             "Cannot create new language entity: provided payload is null"
         );

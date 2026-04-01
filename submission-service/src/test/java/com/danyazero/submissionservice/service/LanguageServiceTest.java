@@ -5,12 +5,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.danyazero.submissionservice.entity.Language;
+import com.danyazero.submissionservice.entity.Submission;
 import com.danyazero.submissionservice.exception.IllegalRequstArgumentException;
 import com.danyazero.submissionservice.exception.RequestException;
-import com.danyazero.submissionservice.model.LanguageDto;
+import com.danyazero.submissionservice.model.LanguageRequestDto;
+import com.danyazero.submissionservice.model.LanguageResponseDto;
 import com.danyazero.submissionservice.repository.LanguageRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
+import com.danyazero.submissionservice.repository.SubmissionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,21 +30,32 @@ class LanguageServiceTest {
 
     @Mock
     private LanguageRepository languageRepository;
+    @Mock
+    private SubmissionRepository submissionRepository;
 
     @InjectMocks
     private LanguageService languageService;
 
+    private UUID userId;
     private Language language;
-    private LanguageDto languageDto;
+    private Submission submission;
+    private LanguageRequestDto languageDto;
 
     @BeforeEach
     void setUp() {
+        userId = UUID.randomUUID();
         language = Language.builder()
                 .id(1)
                 .language("java")
                 .build();
+
+        submission = Submission.builder()
+                .id(0)
+                .userId(userId)
+                .language(language)
+                .build();
         
-        languageDto = new LanguageDto("java");
+        languageDto = new LanguageRequestDto("java");
     }
 
     @Nested
@@ -49,12 +65,15 @@ class LanguageServiceTest {
         @DisplayName("Should return a list of all languages when they exist")
         void getLanguages_Success() {
             when(languageRepository.findAll()).thenReturn(List.of(language));
+            when(submissionRepository.findFirstByUserIdIsOrderByCreatedAtDesc(userId)).thenReturn(Optional.of(submission));
 
-            List<Language> result = languageService.getLanguages();
+            LanguageResponseDto result = languageService.getLanguages(userId);
 
             assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals("java", result.get(0).getLanguage());
+            assertNotNull(result.lastUsed());
+            assertEquals(1, result.lastUsed());
+            assertEquals(1, result.languages().size());
+            assertEquals("java", result.languages().getFirst().getLanguage());
             verify(languageRepository).findAll();
         }
 
@@ -62,11 +81,41 @@ class LanguageServiceTest {
         @DisplayName("Should return an empty list when no languages exist")
         void getLanguages_Empty() {
             when(languageRepository.findAll()).thenReturn(List.of());
+            when(submissionRepository.findFirstByUserIdIsOrderByCreatedAtDesc(userId)).thenReturn(Optional.of(submission));
 
-            List<Language> result = languageService.getLanguages();
+            LanguageResponseDto result = languageService.getLanguages(userId);
 
             assertNotNull(result);
-            assertTrue(result.isEmpty());
+            assertNotNull(result.lastUsed());
+            assertEquals(1, result.lastUsed());
+            assertTrue(result.languages().isEmpty());
+            verify(languageRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("Should return null for last used language if user didnt send submissions yet")
+        void getLanguages_NullLastUsed() {
+            when(languageRepository.findAll()).thenReturn(List.of());
+            when(submissionRepository.findFirstByUserIdIsOrderByCreatedAtDesc(userId)).thenReturn(Optional.empty());
+
+            LanguageResponseDto result = languageService.getLanguages(userId);
+
+            assertNotNull(result);
+            assertNull(result.lastUsed());
+            assertTrue(result.languages().isEmpty());
+            verify(languageRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("Should return null for last used language if user id is null")
+        void getLanguages_NullUserId() {
+            when(languageRepository.findAll()).thenReturn(List.of());
+
+            LanguageResponseDto result = languageService.getLanguages(null);
+
+            assertNotNull(result);
+            assertNull(result.lastUsed());
+            assertTrue(result.languages().isEmpty());
             verify(languageRepository).findAll();
         }
     }

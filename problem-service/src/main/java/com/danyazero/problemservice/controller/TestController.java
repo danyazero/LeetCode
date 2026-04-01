@@ -31,7 +31,6 @@ public class TestController {
     }
 
     @GetMapping("/{problemId}")
-    @SecurityRequirement(name = "bearerAuthorization")
     public List<Testcase> getTests(@PathVariable Integer problemId) {
         return testService.getTestByProblemId(problemId);
     }

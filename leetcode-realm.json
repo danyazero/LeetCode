@@ -312,15 +312,6 @@
           "attributes": {}
         },
         {
-          "id": "0d1be4a6-657b-4d4f-ab02-ae3c36420902",
-          "name": "problem.view_testcases",
-          "description": "",
-          "composite": false,
-          "clientRole": true,
-          "containerId": "416a6118-e8fe-4dbc-8245-693c3156fc7e",
-          "attributes": {}
-        },
-        {
           "id": "f5219c85-c187-49f5-a221-b5c1e109f98e",
           "name": "problem.edit_difficulties",
           "description": "",
@@ -477,7 +468,6 @@
             "problem_service": [
               "problem.edit_problems",
               "problem.edit_tags",
-              "problem.view_testcases",
               "problem.edit_difficulties",
               "problem.edit_testcases"
             ],

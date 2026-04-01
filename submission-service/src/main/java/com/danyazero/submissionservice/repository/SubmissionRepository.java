@@ -16,6 +16,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
     @Query("select count(s.id) from Submission s where s.problemId = ?1")
     int getSubmissionsCount(Integer problemId);
 
+    Optional<Submission> findFirstByUserIdIsOrderByCreatedAtDesc(UUID userId);
+
     Optional<Submission> findFirstByUserIdIsAndProblemIdAndStatus(UUID userId, Integer problemId, SubmissionStatus status);
 
     @Query("select count(s.id) from Submission s where s.problemId = ?1 and s.status = ?2")

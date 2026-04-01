@@ -15,12 +15,21 @@ import { keycloakContext } from "@/features/KeycloakWrapper";
 import { Header } from "@/widget/Header";
 import { Button } from "@/components/ui/button";
 import { deleteProblem, type Tag } from "@/api/problems";
+import { fetchAllLanguages, type Language } from "@/api/submissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface IProblem {
   id: number;
@@ -53,7 +62,13 @@ export const ProblemPage = () => {
   const submitSolution = useProblemStore((state) => state.submitSolution);
   const isSubmitting = useProblemStore((state) => state.isSubmitting);
   const setCode = useProblemStore((state) => state.setCode);
+  const clearSubmissionError = useProblemStore(
+    (state) => state.clearSubmissionError,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [languagesLoading, setLanguagesLoading] = useState(true);
+  const [selectedLanguageId, setSelectedLanguageId] = useState("");
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -69,12 +84,49 @@ export const ProblemPage = () => {
   };
 
   useEffect(() => {
-    setCode(""); // Clear code on mount
-  }, [setCode, data?.id]);
+    setCode(""); 
+    clearSubmissionError();
+    setSelectedLanguageId("");
+  }, [clearSubmissionError, setCode, data?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    setLanguagesLoading(true);
+
+    fetchAllLanguages()
+      .then((response) => {
+        if (!isMounted) return;
+        setLanguages(response.languages);
+        if (response.last_used != null) {
+          setSelectedLanguageId(response.last_used.toString())
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load compilers:", error);
+        if (!isMounted) return;
+        setLanguages([]);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLanguagesLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (!data) {
     return <div>Loading...</div>;
   }
+
+  const isSubmitDisabled =
+    !keycloakContext.authenticated ||
+    isSubmitting ||
+    languagesLoading ||
+    !selectedLanguageId;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden gap-2">
@@ -86,33 +138,42 @@ export const ProblemPage = () => {
               <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
                 {data.title}
               </h3>
-              {keycloakContext.authenticated && keycloakContext.tokenParsed?.roles?.includes("problem.edit_problems") && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete problem</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              <Badge title={data.difficulty.value} variant={data.difficulty.value as Variant} />
+              {keycloakContext.authenticated &&
+                keycloakContext.tokenParsed?.roles?.includes(
+                  "problem.edit_problems",
+                ) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MoreHorizontal className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete problem</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              <Badge
+                title={data.difficulty.value}
+                variant={data.difficulty.value as Variant}
+              />
             </div>
-
           </CardHeader>
 
           <Separator
@@ -123,10 +184,14 @@ export const ProblemPage = () => {
           <CardContent className="px-5 overflow-y-auto h-full">
             <div className="flex flex-col gap-6">
               <ProblemTags tags={data.tags} />
-              <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {data.description}
+              </p>
 
               <div className="flex flex-col gap-4">
-                <h4 className="text-base font-semibold tracking-tight">Examples</h4>
+                <h4 className="text-base font-semibold tracking-tight">
+                  Examples
+                </h4>
                 {data.testcases.map((testcase: ITestcase, index: number) => (
                   <Example
                     key={testcase.id}
@@ -143,18 +208,59 @@ export const ProblemPage = () => {
         <div className="flex flex-col w-full gap-2 min-w-0">
           <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden flex flex-col">
             <CardHeader className="px-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold leading-snug tracking-tight">Editor</h3>
-                <button
-                  onClick={() => submitSolution(data.id)}
-                  className={cn(
-                    "flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
-                    isSubmitting && "opacity-50 cursor-not-allowed"
-                  )}
-                  disabled={!keycloakContext.authenticated || isSubmitting}
-                >
-                  {isSubmitting ? <Loader2 size={"1rem"} className="animate-spin" /> : <Play size={"1rem"} />}
-                </button>
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-semibold leading-snug tracking-tight">
+                  Editor
+                </h3>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    {languagesLoading ? (
+                      <Skeleton className="h-8 w-40 rounded-lg" />
+                    ) : (
+                      <Select
+                        value={selectedLanguageId}
+                        onValueChange={(value) => {
+                          setSelectedLanguageId(value);
+                          clearSubmissionError();
+                        }}
+                        disabled={
+                          isSubmitting ||
+                          !keycloakContext.authenticated
+                        }
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Select compiler" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {languages.map((language) => (
+                            <SelectItem
+                              key={language.id}
+                              value={String(language.id)}
+                            >
+                              {language.language}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <button
+                      onClick={() =>
+                        submitSolution(data.id, Number(selectedLanguageId))
+                      }
+                      className={cn(
+                        "flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                        isSubmitting && "opacity-50 cursor-not-allowed",
+                      )}
+                      disabled={isSubmitDisabled}
+                    >
+                      {isSubmitting ? (
+                        <Loader2 size={"1rem"} className="animate-spin" />
+                      ) : (
+                        <Play size={"1rem"} />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <Separator
@@ -167,7 +273,6 @@ export const ProblemPage = () => {
           </Card>
 
           <ProblemSubmissions problemId={data.id} />
-
         </div>
       </div>
     </div>
