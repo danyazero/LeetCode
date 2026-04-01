@@ -27,6 +27,14 @@ export interface CreateProblemDto {
   tags: Tag[];
 }
 
+export interface CreateTagDto {
+  tag: string;
+}
+
+export interface CreateDifficultyDto {
+  difficulty: string;
+}
+
 export interface TestcaseDto {
   input: string;
   expected: string;
@@ -128,8 +136,20 @@ export function createProblem(data: CreateProblemDto): Promise<Problem> {
   return post<Problem>("/problems", data);
 }
 
+export function createTag(data: CreateTagDto): Promise<Tag> {
+  return post<Tag>("/tags", data);
+}
+
+export function createDifficulty(data: CreateDifficultyDto): Promise<Difficulty> {
+  return post<Difficulty>("/difficulties", data);
+}
+
 export function createTestcase(data: TestcaseDto): Promise<any> {
   return post<any>("/testcases", data);
+}
+
+export function deleteTag(tagId: number): Promise<void> {
+  return del(`/tags/${tagId}`);
 }
 
 export function deleteProblem(problemId: number): Promise<void> {
