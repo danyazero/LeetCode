@@ -34,6 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 export interface IProblem {
   id: number;
@@ -144,8 +149,10 @@ export const ProblemPage = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden gap-2">
       <Header />
-      <div className="flex flex-row gap-2 w-full h-full relative mb-4 mr-4">
-        <Card className="relative w-full border border-border/60 bg-card overflow-hidden">
+      <div className="w-full h-full relative mb-4 mr-4 min-h-0">
+        <ResizablePanelGroup direction="horizontal" className="h-full w-full gap-2">
+          <ResizablePanel defaultSize={42} minSize={28} className="min-w-0">
+            <Card className="relative h-full border border-border/60 bg-card overflow-hidden flex flex-col">
           <CardHeader className="px-5">
             <div className="flex items-center gap-2 min-w-0">
               <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
@@ -194,7 +201,7 @@ export const ProblemPage = () => {
             style={{ width: "calc(100% - 2.5rem)" }}
           />
 
-          <CardContent className="px-5 overflow-y-auto h-full">
+          <CardContent className="px-5 overflow-y-auto flex-1 min-h-0">
             <div className="flex flex-col gap-6">
               <ProblemTags tags={data.tags} />
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -216,9 +223,13 @@ export const ProblemPage = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+            </Card>
+          </ResizablePanel>
 
-        <div className="flex flex-col w-full gap-2 min-w-0">
+          <ResizableHandle withHandle />
+
+          <ResizablePanel defaultSize={58} minSize={32} className="min-w-0">
+            <div className="flex flex-col w-full h-full gap-2 min-w-0">
           <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden flex flex-col">
             <CardHeader className="px-5">
               <div className="flex items-start justify-between gap-3">
@@ -286,7 +297,9 @@ export const ProblemPage = () => {
             problemId={data.id}
             onRestoreSubmission={handleRestoreSubmission}
           />
-        </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );
