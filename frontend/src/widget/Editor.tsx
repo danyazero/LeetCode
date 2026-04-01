@@ -15,6 +15,7 @@ export interface EditorProps {
 export const Editor = (props: EditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const code = useProblemStore((state) => state.code);
   const setCode = useProblemStore((state) => state.setCode);
 
   useEffect(() => {
@@ -53,7 +54,22 @@ export const Editor = (props: EditorProps) => {
     };
   }, [setCode]);
 
-  return (
-    <div className="h-full overflow-auto" ref={editorRef}></div>
-  );
+  useEffect(() => {
+    const view = viewRef.current;
+
+    if (!view) return;
+
+    const currentCode = view.state.doc.toString();
+    if (currentCode === code) return;
+
+    view.dispatch({
+      changes: {
+        from: 0,
+        to: currentCode.length,
+        insert: code,
+      },
+    });
+  }, [code]);
+
+  return <div className="h-full overflow-auto" ref={editorRef}></div>;
 };

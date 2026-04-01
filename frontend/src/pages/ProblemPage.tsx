@@ -15,7 +15,11 @@ import { keycloakContext } from "@/features/KeycloakWrapper";
 import { Header } from "@/widget/Header";
 import { Button } from "@/components/ui/button";
 import { deleteProblem, type Tag } from "@/api/problems";
-import { fetchAllLanguages, type Language } from "@/api/submissions";
+import {
+  fetchAllLanguages,
+  type Language,
+  type SubmissionDetails,
+} from "@/api/submissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,8 +87,17 @@ export const ProblemPage = () => {
     }
   };
 
+  const handleRestoreSubmission = (submission: SubmissionDetails) => {
+    setCode(submission.solution ?? "");
+    clearSubmissionError();
+
+    if (submission.language?.id != null) {
+      setSelectedLanguageId(submission.language.id.toString());
+    }
+  };
+
   useEffect(() => {
-    setCode(""); 
+    setCode("");
     clearSubmissionError();
     setSelectedLanguageId("");
   }, [clearSubmissionError, setCode, data?.id]);
@@ -99,7 +112,7 @@ export const ProblemPage = () => {
         if (!isMounted) return;
         setLanguages(response.languages);
         if (response.last_used != null) {
-          setSelectedLanguageId(response.last_used.toString())
+          setSelectedLanguageId(response.last_used.toString());
         }
       })
       .catch((error) => {
@@ -223,10 +236,7 @@ export const ProblemPage = () => {
                           setSelectedLanguageId(value);
                           clearSubmissionError();
                         }}
-                        disabled={
-                          isSubmitting ||
-                          !keycloakContext.authenticated
-                        }
+                        disabled={isSubmitting || !keycloakContext.authenticated}
                       >
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Select compiler" />
@@ -272,7 +282,10 @@ export const ProblemPage = () => {
             </CardContent>
           </Card>
 
-          <ProblemSubmissions problemId={data.id} />
+          <ProblemSubmissions
+            problemId={data.id}
+            onRestoreSubmission={handleRestoreSubmission}
+          />
         </div>
       </div>
     </div>
