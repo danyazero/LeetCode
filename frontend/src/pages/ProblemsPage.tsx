@@ -1,12 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ProblemCard } from "@/entities/ProblemCard";
 import { ProblemSearchWidget } from "@/widget/ProblemSearchWidget";
-import { fetchProblems, type Problem, type ProblemSearchParams } from "@/api/problems";
+import {
+  fetchProblems,
+  type PageDto,
+  type Problem,
+  type ProblemSearchParams,
+} from "@/api/problems";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { Variant } from "@/shared/Badge";
+import { PaginationControls } from "@/shared/PaginationControls";
 import { Header } from "@/widget/Header";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -14,7 +20,14 @@ import { keycloakContext } from "@/features/KeycloakWrapper";
 
 export const ProblemsPage = () => {
   const navigate = useNavigate();
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [problemsPage, setProblemsPage] = useState<PageDto<Problem>>({
+    content: [],
+    page_number: 0,
+    page_size: 10,
+    total_pages: 0,
+    is_last: true,
+    is_first: true,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +38,7 @@ export const ProblemsPage = () => {
     setError(null);
     try {
       const data = await fetchProblems(params);
-      console.log(data.content)
-      setProblems(data.content);
+      setProblemsPage(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load problems");
     } finally {
@@ -37,6 +49,16 @@ export const ProblemsPage = () => {
   const handleSearch = useCallback((params: ProblemSearchParams & { size: number }) => {
     setSearchParams(params);
     loadProblems(params);
+  }, [loadProblems]);
+
+  const handlePageChange = useCallback((page: number) => {
+    const nextParams = { ...searchParams, page };
+    setSearchParams(nextParams);
+    loadProblems(nextParams);
+  }, [loadProblems, searchParams]);
+
+  useEffect(() => {
+    void loadProblems(searchParams);
   }, [loadProblems]);
 
   return (
@@ -91,10 +113,10 @@ export const ProblemsPage = () => {
                   </CardContent>
                 </Card>
               ))
-            ) : !error && problems.length === 0 ? (
+            ) : !error && problemsPage.content.length === 0 ? (
               <p className="text-center text-muted-foreground mt-8">No problems found</p>
             ) : (
-              !error && problems.map((problem) => (
+              !error && problemsPage.content.map((problem) => (
                 <ProblemCard
                   key={problem.id}
                   isCompleted={false}
@@ -107,6 +129,14 @@ export const ProblemsPage = () => {
                 />
               ))
             )}
+
+            {!isLoading && !error ? (
+              <PaginationControls
+                currentPage={problemsPage.page_number}
+                totalPages={problemsPage.total_pages}
+                onPageChange={handlePageChange}
+              />
+            ) : null}
           </div>
         </div>
       </div>

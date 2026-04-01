@@ -5,10 +5,11 @@ export type { Difficulty, Tag };
 
 export interface PageDto<T> {
   content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
+  page_number: number;
+  page_size: number;
+  total_pages: number;
+  is_last: boolean;
+  is_first: boolean;
 }
 
 export interface Problem {
@@ -92,7 +93,6 @@ async function del(path: string): Promise<void> {
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
 }
 
-// All request params are optional 
 export function fetchProblems(
   params: ProblemSearchParams,
 ): Promise<PageDto<Problem>> {

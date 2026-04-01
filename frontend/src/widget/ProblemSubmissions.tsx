@@ -4,14 +4,8 @@ import { useQuery } from "@/features/QueryHook";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/shared/Badge";
+import { PaginationControls } from "@/shared/PaginationControls";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { useSearchParams } from "react-router";
 import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 import type { ProblemStatus, SubmissionsPage, ISubmission } from "@/App";
@@ -82,45 +76,13 @@ export const ProblemSubmissions = ({
                     onRestore={onRestoreSubmission}
                   />
                 ))}
-                {submissions.total_pages > 1 && (
-                  <Pagination className="mt-4">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => {
-                            if (!submissions.is_first) {
-                              setSearchParams({ page: (page - 1).toString() });
-                            }
-                          }}
-                          className={
-                            submissions.is_first
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                      <PaginationItem>
-                        <span className="text-sm text-muted-foreground mx-4">
-                          Page {submissions.page_number + 1} of {submissions.total_pages}
-                        </span>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => {
-                            if (!submissions.is_last) {
-                              setSearchParams({ page: (page + 1).toString() });
-                            }
-                          }}
-                          className={
-                            submissions.is_last
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
+                <PaginationControls
+                  currentPage={submissions.page_number}
+                  totalPages={submissions.total_pages}
+                  onPageChange={(nextPage) => {
+                    setSearchParams({ page: nextPage.toString() });
+                  }}
+                />
               </>
             ) : (
               <div className="flex justify-center items-center w-full h-full">
