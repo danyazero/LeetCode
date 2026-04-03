@@ -1,13 +1,59 @@
-# Tech Stack
-| Component    | Primary Technologies     |
-| :----------- | ------------------------ |
-| Backend      | Spring Boot, Spring Cloud|
-| Infra        | Docker Compose           |
-| Messaging    | Apache Kafka             |
-| SSO Provider | Keycloak                 |
-| Databases    | PostgreSQL               |
-| Execution    | NSJail                   |
-| Frontend     | React, Tailwind          |
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java"/></a>
+  <a href="https://spring.io"><img src="https://img.shields.io/badge/Spring_Boot-6cb52d?style=for-the-badge&logo=Spring&logoColor=white" alt="Spring"/></a>
+          <a href="[https://www.keycloak.org](https://spring.io/projects/spring-cloud)"><img src="https://img.shields.io/badge/Spring_Cloud-6cb52d?style=for-the-badge&logo=icloud&logoColor=white" alt="Spring Cloud"/></a>
+    <a href="https://www.red-gate.com/products/flyway/"><img src="https://img.shields.io/badge/flyway-c60400?style=for-the-badge&logo=flyway&logoColor=white"  alt="Flyway"/></a>
+  <a href="https://kafka.apache.org"><img src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white" alt="Apache Kafka"/></a>
+      <a href="https://kubernetes.io"><img src="https://img.shields.io/badge/kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
+      <a href="https://www.keycloak.org"><img src="https://img.shields.io/badge/keycloak-4D4D4D?style=for-the-badge&logo=keycloak&logoColor=white" alt="Keycloak"/></a>
+    <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/></a>
+  <a href="https://www.docker.com"><img src="https://img.shields.io/badge/docker-257bd6?style=for-the-badge&logo=docker&logoColor=white" alt="Docker, Docker Compose"/></a>
+  <a href="https://git-scm.com"><img src="https://img.shields.io/badge/GIT-E44C30?style=for-the-badge&logo=git&logoColor=white" alt="Git"></a>
+  <a href="#"><img src="https://img.shields.io/badge/JWT-333?style=for-the-badge&logo=JSON-Web-Tokens&logoColor=white" alt="JSON Web Tokens"/></a>
+  <a href="https://spring.io"><img src="https://img.shields.io/badge/swagger-6cb52d?style=for-the-badge&logo=swagger&logoColor=white&titleColor=white" alt="Swagger"/></a>
+   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-%23353947?style=for-the-badge&logo=react" alt="React"></a>
+    <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="Typescript"/></a>
+  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/TailwindCSS-37bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind"/></a>
+</p>
+<img width="1403" height="1017" alt="Working example" src="https://github.com/user-attachments/assets/219a5727-46db-4e28-883f-13333d78db13" />
+
+# Get Started
+Follow these steps to run the project locally.
+
+### Prerequisites
+Make sure you have the following installed:
+
+- Docker
+- Git
+
+### Clone the repository
+```shell
+git clone https://github.com/danyazero/LeetCode.git
+cd LeetCode
+```
+### Build the project
+```shell
+make build
+```
+
+### Configure local domains
+Add the following entries to your /etc/hosts file:
+```diff
+-127.0.0.1       localhost
++127.0.0.1       localhost swagger.localhost noty.localhost auth.localhost problem.localhost submission.localhost
+```
+### Run the project
+
+```shell
+docker compose up -d
+```
+
+### Access the services
+
+- **Frontend (Application)** — http://localhost  
+- **Keycloak (Auth setup & admin panel)** — http://auth.localhost  
+- **Swagger (API documentation)** — http://swagger.localhost/swagger-ui.html  
+
 
 # System Architecture
 Built on an Event-Driven Architecture (EDA), this system implements loosely coupled microservices for maximum agility and independent scaling. All core operations are handled asynchronously using a Message Queue, which guarantees system resilience and enables real-time notifications for user feedback.
@@ -89,7 +135,4 @@ The schema is fully normalized (3NF), avoiding data duplication and ensuring ref
 | **`Submission`**    | The main table storing all user submissions. Each entry references the user, the problem, and the language used.                                                                   |
 | **`Events`**        | Tracks the lifecycle of each submission by recording state changes. This enables asynchronous monitoring and debugging of submission processing in message-driven environments.    |
 
-# Screenshots
-<img width="1403" height="1017" alt="image" src="https://github.com/user-attachments/assets/5be3201a-45d1-49ba-9e74-c2e08dc61db9" />
-<img width="1400" height="1018" alt="image" src="https://github.com/user-attachments/assets/fbaf353e-964e-43dd-80a7-801c39af6afa" />
 
