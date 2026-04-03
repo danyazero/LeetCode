@@ -4,6 +4,8 @@
           <a href="[https://www.keycloak.org](https://spring.io/projects/spring-cloud)"><img src="https://img.shields.io/badge/Spring_Cloud-6cb52d?style=for-the-badge&logo=icloud&logoColor=white" alt="Spring Cloud"/></a>
     <a href="https://www.red-gate.com/products/flyway/"><img src="https://img.shields.io/badge/flyway-c60400?style=for-the-badge&logo=flyway&logoColor=white"  alt="Flyway"/></a>
   <a href="https://kafka.apache.org"><img src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white" alt="Apache Kafka"/></a>
+  <a href="https://junit.org"><img src="https://img.shields.io/badge/junit5-25A162?style=for-the-badge&logo=junit5&logoColor=white" alt="JUnit5"/></a>
+    <a href="https://site.mockito.org"><img src="https://img.shields.io/badge/Mockito-c4d8c7?style=for-the-badge&logo=mocha" alt="Mockito"/></a>
       <a href="https://kubernetes.io"><img src="https://img.shields.io/badge/kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
       <a href="https://www.keycloak.org"><img src="https://img.shields.io/badge/keycloak-4D4D4D?style=for-the-badge&logo=keycloak&logoColor=white" alt="Keycloak"/></a>
     <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/></a>
