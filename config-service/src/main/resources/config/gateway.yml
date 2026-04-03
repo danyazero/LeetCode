@@ -26,6 +26,11 @@ spring:
               predicates:
                 - Host=problem.localhost
                 - Path=/api/**
+            - id: notification-service
+              uri: lb:ws://notification
+              predicates:
+                - Host=noty.localhost
+                - Path=/api/*/ws
             - id: submission-service
               uri: lb://submission
               predicates:

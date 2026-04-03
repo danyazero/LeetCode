@@ -16,6 +16,7 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
     "@react-keycloak/web": "^3.4.0",
+    "@stomp/stompjs": "^7.3.0",
     "axios": "^1.13.2",
     "bun-plugin-tailwind": "^0.0.15",
     "class-variance-authority": "^0.7.1",

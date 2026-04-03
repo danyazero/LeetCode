@@ -10,6 +10,7 @@ import { useSearchParams } from "react-router";
 import { useProblemStore } from "@/features/Problem/store/useProblemStore";
 import type { ProblemStatus, SubmissionsPage, ISubmission } from "@/App";
 import type { SubmissionDetails } from "@/api/submissions";
+import type { SubmissionStatus } from "@/shared/Submission";
 
 export const ProblemSubmissions = ({
   problemId,
@@ -21,6 +22,9 @@ export const ProblemSubmissions = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "0", 10);
   const submissionCount = useProblemStore((state) => state.submissionCount);
+  const isSubmitting = useProblemStore((state) => state.isSubmitting);
+  const submissionStatus = useProblemStore((state) => state.submissionStatus);
+  const submissionId = useProblemStore((state) => state.submissionId);
 
   const {
     loading: loadingSubmissions,
@@ -68,6 +72,14 @@ export const ProblemSubmissions = ({
               </div>
             ) : submissions ? (
               <>
+                {isSubmitting && submissionStatus && (
+                  <Submission
+                    key={"live_submission"}
+                    id={submissionId || 0}
+                    status={submissionStatus as SubmissionStatus}
+                    onRestore={() => {}} // Disabled during submission
+                  />
+                )}
                 {submissions.content.map((submission: ISubmission) => (
                   <Submission
                     key={"problem_submission_" + submission.submission_id}

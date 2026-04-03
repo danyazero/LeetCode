@@ -70,6 +70,7 @@ export const ProblemPage = () => {
   const navigate = useNavigate();
   const submitSolution = useProblemStore((state) => state.submitSolution);
   const isSubmitting = useProblemStore((state) => state.isSubmitting);
+  const submissionStatus = useProblemStore((state) => state.submissionStatus);
   const setCode = useProblemStore((state) => state.setCode);
   const clearSubmissionError = useProblemStore(
     (state) => state.clearSubmissionError,
@@ -153,76 +154,76 @@ export const ProblemPage = () => {
         <ResizablePanelGroup direction="horizontal" className="h-full w-full gap-2">
           <ResizablePanel defaultSize={42} minSize={28} className="min-w-0">
             <Card className="relative h-full border border-border/60 bg-card overflow-hidden flex flex-col">
-          <CardHeader className="px-5">
-            <div className="flex items-center gap-2 min-w-0">
-              <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
-                {data.title}
-              </h3>
-              {keycloakContext.authenticated &&
-                keycloakContext.tokenParsed?.roles?.includes(
-                  "problem.edit_problems",
-                ) && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <MoreHorizontal className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete problem</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              <Badge
-                title={data.difficulty.value}
-                variant={data.difficulty.value as Variant}
-              />
-            </div>
-          </CardHeader>
-
-          <Separator
-            className="mx-5 w-auto"
-            style={{ width: "calc(100% - 2.5rem)" }}
-          />
-
-          <CardContent className="px-5 overflow-y-auto flex-1 min-h-0">
-            <div className="flex flex-col gap-6">
-              <ProblemTags tags={data.tags} />
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {data.description}
-              </p>
-
-              <div className="flex flex-col gap-4">
-                <h4 className="text-base font-semibold tracking-tight">
-                  Examples
-                </h4>
-                {data.testcases.map((testcase: ITestcase, index: number) => (
-                  <Example
-                    key={testcase.id}
-                    id={index + 1}
-                    input={testcase.input.replaceAll(", ", "\n")}
-                    expected={testcase.expected.replaceAll(", ", "\n")}
+              <CardHeader className="px-5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="flex-1 text-lg font-semibold leading-snug tracking-tight">
+                    {data.title}
+                  </h3>
+                  {keycloakContext.authenticated &&
+                    keycloakContext.tokenParsed?.roles?.includes(
+                      "problem.edit_problems",
+                    ) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <MoreHorizontal className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete problem</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  <Badge
+                    title={data.difficulty.value}
+                    variant={data.difficulty.value as Variant}
                   />
-                ))}
-              </div>
-            </div>
-          </CardContent>
+                </div>
+              </CardHeader>
+
+              <Separator
+                className="mx-5 w-auto"
+                style={{ width: "calc(100% - 2.5rem)" }}
+              />
+
+              <CardContent className="px-5 overflow-y-auto flex-1 min-h-0">
+                <div className="flex flex-col gap-6">
+                  <ProblemTags tags={data.tags} />
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {data.description}
+                  </p>
+
+                  <div className="flex flex-col gap-4">
+                    <h4 className="text-base font-semibold tracking-tight">
+                      Examples
+                    </h4>
+                    {data.testcases.map((testcase: ITestcase, index: number) => (
+                      <Example
+                        key={testcase.id}
+                        id={index + 1}
+                        input={testcase.input.replaceAll(", ", "\n")}
+                        expected={testcase.expected.replaceAll(", ", "\n")}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </ResizablePanel>
 
@@ -230,73 +231,77 @@ export const ProblemPage = () => {
 
           <ResizablePanel defaultSize={58} minSize={32} className="min-w-0">
             <div className="flex flex-col w-full h-full gap-2 min-w-0">
-          <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden flex flex-col">
-            <CardHeader className="px-5">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold leading-snug tracking-tight">
-                  Editor
-                </h3>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    {languagesLoading ? (
-                      <Skeleton className="h-8 w-40 rounded-lg" />
-                    ) : (
-                      <Select
-                        value={selectedLanguageId}
-                        onValueChange={(value) => {
-                          setSelectedLanguageId(value);
-                          clearSubmissionError();
-                        }}
-                        disabled={isSubmitting || !keycloakContext.authenticated}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Select compiler" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {languages.map((language) => (
-                            <SelectItem
-                              key={language.id}
-                              value={String(language.id)}
-                            >
-                              {language.language}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <button
-                      onClick={() =>
-                        submitSolution(data.id, Number(selectedLanguageId))
-                      }
-                      className={cn(
-                        "flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
-                        isSubmitting && "opacity-50 cursor-not-allowed",
-                      )}
-                      disabled={isSubmitDisabled}
-                    >
-                      {isSubmitting ? (
-                        <Loader2 size={"1rem"} className="animate-spin" />
-                      ) : (
-                        <Play size={"1rem"} />
-                      )}
-                    </button>
+              <Card className="relative w-full h-full border border-border/60 bg-card overflow-hidden flex flex-col">
+                <CardHeader className="px-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-base font-semibold leading-snug tracking-tight">
+                      Editor
+                    </h3>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        {languagesLoading ? (
+                          <Skeleton className="h-8 w-40 rounded-lg" />
+                        ) : (
+                          <Select
+                            value={selectedLanguageId}
+                            onValueChange={(value) => {
+                              setSelectedLanguageId(value);
+                              clearSubmissionError();
+                            }}
+                            disabled={isSubmitting || !keycloakContext.authenticated}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Select compiler" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {languages.map((language) => (
+                                <SelectItem
+                                  key={language.id}
+                                  value={String(language.id)}
+                                >
+                                  {language.language}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        <button
+                          onClick={() =>
+                            submitSolution(data.id, Number(selectedLanguageId))
+                          }
+                          className={cn(
+                            "flex flex-row gap-2 items-center text-chart-2 font-normal text-sm rounded-3xl px-2.5 py-1.5 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                            isSubmitting && "opacity-50 cursor-not-allowed",
+                          )}
+                          disabled={isSubmitDisabled}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 size={"1rem"} className="animate-spin" />
+                            </>
+                          ) : (
+                            <>
+                              <Play size={"1rem"} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </CardHeader>
-            <Separator
-              className="mx-5 w-auto"
-              style={{ width: "calc(100% - 2.5rem)" }}
-            />
-            <CardContent className="px-5 flex-1 min-h-0">
-              <Editor problemId={data.id} />
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <Separator
+                  className="mx-5 w-auto"
+                  style={{ width: "calc(100% - 2.5rem)" }}
+                />
+                <CardContent className="px-5 flex-1 min-h-0">
+                  <Editor problemId={data.id} />
+                </CardContent>
+              </Card>
 
-          <ProblemSubmissions
-            problemId={data.id}
-            onRestoreSubmission={handleRestoreSubmission}
-          />
+              <ProblemSubmissions
+                problemId={data.id}
+                onRestoreSubmission={handleRestoreSubmission}
+              />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: notification-service
+    name: notification
   security:
     oauth2:
       resourceserver:
@@ -9,3 +9,10 @@ spring:
 
 kafka:
   bootstrap-servers-config: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery:8761/eureka
+  instance:
+    prefer-ip-address: true
