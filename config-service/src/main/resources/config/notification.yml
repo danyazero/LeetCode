@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: notification-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/leetcode/protocol/openid-connect/certs
+
+kafka:
+  bootstrap-servers-config: kafka:9092

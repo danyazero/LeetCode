@@ -3,10 +3,13 @@ package com.danyazero.executorservice.utils;
 import com.danyazero.executorservice.model.SubmissionStatus;
 import com.danyazero.executorservice.model.SubmissionUpdated;
 import com.danyazero.executorservice.model.SubmissionUpdatedEvent;
+import com.danyazero.executorservice.model.SubmissionUpdatedEventPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -18,46 +21,53 @@ public class StatusEventProducer {
         SubmissionUpdatedEvent
     > submissionKafkaTemplate;
     
-    public void internalError(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.INTERNAL_ERROR);
-    }
-    
-    public void wrongAnswer(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.WRONG_ANSWER);
-    }
-    
-    public void accepted(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.ACCEPTED);
-    }
-    
-    public void compiled(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.COMPILED);
-    }
-    
-    public void compilationError(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.COMPILATION_ERROR);
+    public void internalError(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.INTERNAL_ERROR);
     }
 
-    public void unsupportedLanguage(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.UNSUPPORTED_LANGUAGE);
+    public void cancelled(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.CANCELLED);
     }
 
-    public void timeLimitExceeded(int problemId, int submissionId) {
-        this.accept(problemId, submissionId, SubmissionStatus.TIME_LIMIT_EXCEEDED);
+    public void running(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.RUNNING);
+    }
+    
+    public void wrongAnswer(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.WRONG_ANSWER);
+    }
+    
+    public void accepted(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.ACCEPTED);
+    }
+    
+    public void compiled(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.COMPILED);
+    }
+    
+    public void compilationError(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.COMPILATION_ERROR);
+    }
+
+    public void unsupportedLanguage(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.UNSUPPORTED_LANGUAGE);
+    }
+
+    public void timeLimitExceeded(SubmissionUpdatedEventPayload payload) {
+        this.accept(payload, SubmissionStatus.TIME_LIMIT_EXCEEDED);
     }
 
     public void accept(
-        Integer problemId,
-        Integer submissionId,
+        SubmissionUpdatedEventPayload payload,
         SubmissionStatus submissionStatus
     ) {
         var event = new SubmissionUpdatedEvent(
             1,
-            new SubmissionUpdated(problemId, submissionId, submissionStatus)
+            new SubmissionUpdated(payload.userId(), payload.problemId(), payload.submissionId(), submissionStatus)
         );
 
         submissionKafkaTemplate
-            .sendDefault("submission-" + submissionId, event)
+            .sendDefault("submission-" + payload.submissionId(), event)
             .thenAccept(result ->
                 log.info(
                     "Submission {} event {} produced (topic={})",

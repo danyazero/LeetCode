@@ -1,9 +1,6 @@
-package com.danyazero.problemservice.config;
+package ua.danyazero.notificationservice.config;
 
-import com.danyazero.problemservice.model.AuthenticatedUser;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +8,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import ua.danyazero.notificationservice.model.AuthenticatedUser;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
+
+@Slf4j
 @Component
 public class KeycloakJwtConverter
     implements Converter<Jwt, AbstractAuthenticationToken>
@@ -25,6 +28,7 @@ public class KeycloakJwtConverter
             userId,
             username
         );
+        log.info("Authorizing user with id -> {}", userId);
 
         return new JwtAuthenticationToken(
             jwt,

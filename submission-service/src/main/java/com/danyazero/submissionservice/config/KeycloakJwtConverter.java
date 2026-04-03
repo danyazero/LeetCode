@@ -20,15 +20,16 @@ public class KeycloakJwtConverter
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         var username = jwt.getClaimAsString("preferred_username");
+        var userId = jwt.getClaimAsString("uid");
         AuthenticatedUser principal = new AuthenticatedUser(
-            jwt.getClaimAsString("uid"),
+            userId,
             username
         );
 
         return new JwtAuthenticationToken(
             jwt,
             mapGrantedAuthorities(jwt),
-            username
+            userId
         ) {
             @Override
             public Object getPrincipal() {

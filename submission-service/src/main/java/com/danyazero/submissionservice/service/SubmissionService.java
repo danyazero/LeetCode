@@ -8,9 +8,11 @@ import com.danyazero.submissionservice.mapper.SubmissionsPageMapper;
 import com.danyazero.submissionservice.model.*;
 import com.danyazero.submissionservice.repository.EventRepository;
 import com.danyazero.submissionservice.repository.SubmissionRepository;
+
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -24,26 +26,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmissionService {
 
     private final KafkaTemplate<
-        String,
-        SubmissionCreatedEvent
-    > submissionKafkaTemplate;
+            String,
+            SubmissionCreatedEvent
+            > submissionKafkaTemplate;
     private final SubmissionRepository submissionRepository;
     private final LanguageService languageService;
     private final EventRepository eventRepository;
 
     @Transactional
     public Submission createSubmission(
-        UUID userId,
-        SubmissionDto submissionPayload
+            UUID userId,
+            SubmissionDto submissionPayload
     ) {
         log.info("Create submission request from user {}", userId);
         if (userId == null) {
             throw new IllegalRequstArgumentException(
-                "Cannot create submission: provided user ID is null"
+                    "Cannot create submission: provided user ID is null"
             );
         } else if (submissionPayload == null) {
             throw new IllegalRequstArgumentException(
-                "Cannot create submission: provided payload is null"
+                    "Cannot create submission: provided payload is null"
             );
         }
 
@@ -52,11 +54,11 @@ public class SubmissionService {
 
         submission.setEvents(Set.of(event));
 
-        produceEvent(createSubmissionEvent(submission, submissionPayload));
+        produceEvent(createSubmissionEvent(submission));
 
         log.info(
-            "Submission with id {} has been created successfully.",
-            submission.getId()
+                "Submission with id {} has been created successfully.",
+                submission.getId()
         );
 
         return submission;
@@ -70,95 +72,96 @@ public class SubmissionService {
         }
 
         var isSolved = submissionRepository
-            .findFirstByUserIdIsAndProblemIdAndStatus(userId, problemId, SubmissionStatus.ACCEPTED)
-            .isPresent();
+                .findFirstByUserIdIsAndProblemIdAndStatus(userId, problemId, SubmissionStatus.ACCEPTED)
+                .isPresent();
 
         return new ProblemStatus(isSolved);
     }
 
     public Submission getSubmission(Integer submissionId) {
         if (submissionId == null) throw new IllegalRequstArgumentException(
-            "Cannot provide submission: submission ID is null"
+                "Cannot provide submission: submission ID is null"
         );
         return submissionRepository
-            .findById(submissionId)
-            .orElseThrow(() ->
-                new RequestException(
-                    "Cannot provide submission: submission with id " +
-                        submissionId +
-                        " not found."
-                )
-            );
+                .findById(submissionId)
+                .orElseThrow(() ->
+                        new RequestException(
+                                "Cannot provide submission: submission with id " +
+                                        submissionId +
+                                        " not found."
+                        )
+                );
     }
 
     public PageDto<SubmissionResponseDto> getSubmissions(
-        int problemId,
-        UUID userId,
-        Pageable pageable
+            int problemId,
+            UUID userId,
+            Pageable pageable
     ) {
         if (userId == null) {
             throw new IllegalRequstArgumentException("Cannot provide submissions list: user ID is null.");
         } else if (pageable == null) {
             throw new IllegalRequstArgumentException("Cannot provide submissions list: page parameters are null.");
         }
-        
+
         return SubmissionsPageMapper.map(
-            submissionRepository.findAllByProblemIdAndUserIdOrderByIdDesc(
-                problemId,
-                userId,
-                pageable
-            )
+                submissionRepository.findAllByProblemIdAndUserIdOrderByIdDesc(
+                        problemId,
+                        userId,
+                        pageable
+                )
         );
     }
 
     @Transactional
     public void updateSubmissionStatus(
-        Integer submissionId,
-        SubmissionStatus submissionStatus
+            Integer submissionId,
+            SubmissionStatus submissionStatus
     ) {
         if (submissionStatus == null) {
             log.warn("Cannot update submission status: submission status is null (submissionId: {})", submissionId);
             throw new RuntimeException("Cannot update submission status: submission status is null");
         }
-        
+
         var submission = getSubmission(submissionId);
         submission.setStatus(submissionStatus);
         submissionRepository.save(submission);
 
         var submissionEvent = Event.builder()
-            .status(submissionStatus)
-            .createdAt(Instant.now())
-            .submission(submission)
-            .build();
+                .status(submissionStatus)
+                .createdAt(Instant.now())
+                .submission(submission)
+                .build();
 
         eventRepository.save(submissionEvent);
     }
 
     private Event saveSubmissionEvent(Submission submission) {
         var event = Event.builder()
-            .status(SubmissionStatus.CREATED)
-            .submission(submission)
-            .createdAt(Instant.now())
-            .build();
+                .status(SubmissionStatus.CREATED)
+                .submission(submission)
+                .createdAt(Instant.now())
+                .build();
 
         return eventRepository.save(event);
     }
 
     private SubmissionCreatedEvent createSubmissionEvent(
-        Submission submission,
-        SubmissionDto payload
+            Submission submission
     ) {
+
         var data = SubmissionCreatedEventDto.builder()
-            .language(submission.getLanguage().getLanguage())
-            .submissionId(submission.getId())
-            .problemId(payload.problemId())
-            .solution(payload.solution())
-            .build();
+                .userId(submission.getUserId())
+                .language(submission.getLanguage().getLanguage())
+                .submissionId(submission.getId())
+                .problemId(submission.getProblemId())
+                .solution(submission.getSolution())
+                .build();
 
         return new SubmissionCreatedEvent(
-            SubmissionStatus.CREATED.getValue(),
-            1,
-            data
+                SubmissionStatus.CREATED.getValue(),
+                1,
+                data
         );
     }
 
@@ -166,10 +169,10 @@ public class SubmissionService {
         try {
             var res = submissionKafkaTemplate.sendDefault(event).get();
             log.info(
-                "Submission {} event {} has been produced. (topic={})",
-                event.getEventType(),
-                event.getEventId(),
-                res.getRecordMetadata().topic()
+                    "Submission {} event {} has been produced. (topic={})",
+                    event.getEventType(),
+                    event.getEventId(),
+                    res.getRecordMetadata().topic()
             );
         } catch (Exception e) {
             log.error("Failed to produce event", e);
@@ -178,21 +181,21 @@ public class SubmissionService {
     }
 
     private Submission saveSubmission(
-        UUID userId,
-        SubmissionDto submissionPayload
+            UUID userId,
+            SubmissionDto submissionPayload
     ) {
         var language = languageService.getLanguage(
-            submissionPayload.languageId()
+                submissionPayload.languageId()
         );
 
         var submission = Submission.builder()
-            .problemId(submissionPayload.problemId())
-            .solution(submissionPayload.solution())
-            .status(SubmissionStatus.CREATED)
-            .createdAt(Instant.now())
-            .language(language)
-            .userId(userId)
-            .build();
+                .problemId(submissionPayload.problemId())
+                .solution(submissionPayload.solution())
+                .status(SubmissionStatus.CREATED)
+                .createdAt(Instant.now())
+                .language(language)
+                .userId(userId)
+                .build();
 
         return submissionRepository.save(submission);
     }

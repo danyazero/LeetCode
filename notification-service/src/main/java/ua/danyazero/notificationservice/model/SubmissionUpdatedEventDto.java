@@ -1,4 +1,4 @@
-package com.danyazero.problemservice.model;
+package ua.danyazero.notificationservice.model;
 
 import java.util.UUID;
 

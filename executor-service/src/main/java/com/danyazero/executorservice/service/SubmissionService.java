@@ -23,7 +23,7 @@ public class SubmissionService {
                 compiler -> processSubmission(submission, compiler),
                 () -> {
                     log.info("Compiler for language - '{}' not found", submission.language());
-                    statusEventProducer.unsupportedLanguage(submission.problemId(), submission.id());
+                    statusEventProducer.unsupportedLanguage(new SubmissionUpdatedEventPayload(submission.userId(), submission.problemId(), submission.id()));
                 }
         );
     }
@@ -34,7 +34,13 @@ public class SubmissionService {
             return;
         }
 
-        final var compiledProgramOpt = compileSolution(executor, submission);
+        var eventPayload = SubmissionUpdatedEventPayload.builder()
+                .submissionId(submission.id())
+                .problemId(submission.problemId())
+                .userId(submission.userId())
+                .build();
+
+        final var compiledProgramOpt = compileSolution(executor, submission.solution(), eventPayload);
         if (compiledProgramOpt.isEmpty()) return;
 
         CompiledProgram compiledProgram = compiledProgramOpt.get();
@@ -43,44 +49,46 @@ public class SubmissionService {
             final var testcases = problemClient.getProblemTestcases(submission.problemId());
             if (testcases == null || testcases.isEmpty()) {
                 log.warn("No testcases found for problem {}", submission.problemId());
-                statusEventProducer.internalError(submission.problemId(), submission.id());
+                statusEventProducer.cancelled(eventPayload);
                 return;
             }
 
+            statusEventProducer.running(eventPayload);
+
             for (var testcase : testcases) {
-                final var outputOpt = runTestcase(compiledProgram, testcase.input(), submission.problemId(), submission.id());
-                
+                final var outputOpt = runTestcase(compiledProgram, testcase.input(), eventPayload);
+
                 if (outputOpt.isEmpty()) {
-                    return; 
+                    return;
                 }
 
                 if (isNotEqualsExpected(outputOpt.get(), testcase.expected())) {
                     log.info("Wrong answer for submission {} -> {}, expected -> {}",
                             submission.id(), outputOpt.get(), testcase.expected());
 
-                    statusEventProducer.wrongAnswer(submission.problemId(), submission.id());
+                    statusEventProducer.wrongAnswer(eventPayload);
                     return;
                 }
             }
-            statusEventProducer.accepted(submission.problemId(), submission.id());
+            statusEventProducer.accepted(eventPayload);
         } catch (Exception e) {
             log.error("Error processing testcases for submission {}", submission.id(), e);
-            statusEventProducer.internalError(submission.problemId(), submission.id());
+            statusEventProducer.internalError(eventPayload);
         } finally {
             compiledProgram.cleanup();
         }
     }
 
-    private Optional<CompiledProgram> compileSolution(Compiler compiler, SubmissionCreated submission) {
-        return switch (compiler.compile(submission.solution())) {
+    private Optional<CompiledProgram> compileSolution(Compiler compiler, String solution, SubmissionUpdatedEventPayload eventPayload) {
+        return switch (compiler.compile(solution)) {
             case CompilationResult.Failure error -> {
-                statusEventProducer.compilationError(submission.problemId(), submission.id());
-                log.info("Compilation failed for submission - {}, with error: {}", submission.id(), error.message());
+                statusEventProducer.compilationError(eventPayload);
+                log.info("Compilation failed for submission - {}, with error: {}", eventPayload.submissionId(), error.message());
 
                 yield Optional.empty();
             }
             case CompilationResult.Success result -> {
-                statusEventProducer.compiled(submission.problemId(), submission.id());
+                statusEventProducer.compiled(eventPayload);
                 log.info("Compilation completed successfully");
 
                 yield Optional.of(result.program());
@@ -88,25 +96,25 @@ public class SubmissionService {
         };
     }
 
-    private Optional<String> runTestcase(CompiledProgram compiledProgram, String input, int problemId, int submissionId) {
+    private Optional<String> runTestcase(CompiledProgram compiledProgram, String input, SubmissionUpdatedEventPayload eventPayload) {
         List<String> params = input != null && !input.isBlank() ? List.of(input.split(", ")) : List.of();
-        
+
         return switch (compiledProgram.execute(params, 2)) {
             case ExecutionResult.Failure error -> {
-                log.info("Execution error for submission {}: {}", submissionId, error.message());
-                statusEventProducer.internalError(problemId, submissionId);
+                log.info("Execution error for submission {}: {}", eventPayload.submissionId(), error.message());
+                statusEventProducer.internalError(eventPayload);
 
                 yield Optional.empty();
             }
             case ExecutionResult.Timeout ignored -> {
-                log.info("Time limit exceeded for submission {}", submissionId);
-                statusEventProducer.timeLimitExceeded(problemId, submissionId);
+                log.info("Time limit exceeded for submission {}", eventPayload.submissionId());
+                statusEventProducer.timeLimitExceeded(eventPayload);
 
                 yield Optional.empty();
             }
             case ExecutionResult.Success result -> {
                 final var output = result.output() != null ? formatExecutionResult(result.output()) : "";
-                log.info("Submission {} testcase result: {}", submissionId, output);
+                log.info("Submission {} testcase result: {}", eventPayload.submissionId(), output);
 
                 yield Optional.of(output);
             }

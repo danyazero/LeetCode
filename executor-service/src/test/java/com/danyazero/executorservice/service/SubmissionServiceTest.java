@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +26,11 @@ class SubmissionServiceTest {
     private StatusEventProducer statusEventProducer;
     private SubmissionService submissionService;
 
+    private final int PROBLEM_ID = 10;
+    private final int SUBMISSION_ID = 100;
+    private final UUID USER_ID = UUID.randomUUID();
+    private final SubmissionUpdatedEventPayload EVENT_PAYLOAD = new SubmissionUpdatedEventPayload(USER_ID, PROBLEM_ID, SUBMISSION_ID);
+
     @BeforeEach
     void setUp() {
         problemClient = mock(ProblemClient.class);
@@ -35,8 +41,9 @@ class SubmissionServiceTest {
 
     private SubmissionCreated defaultSubmission() {
         return SubmissionCreated.builder()
-                .id(100)
-                .problemId(10)
+                .problemId(PROBLEM_ID)
+                .id(SUBMISSION_ID)
+                .userId(USER_ID)
                 .language("java")
                 .solution("print('hello')")
                 .build();
@@ -53,7 +60,7 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission());
 
-            verify(statusEventProducer).unsupportedLanguage(10, 100);
+            verify(statusEventProducer).unsupportedLanguage(EVENT_PAYLOAD);
             verifyNoInteractions(problemClient);
         }
 
@@ -67,7 +74,8 @@ class SubmissionServiceTest {
             submissionService.processSubmission(defaultSubmission());
 
             verify(compiler).compile(anyString());
-            verify(statusEventProducer).compilationError(10, 100);
+            verify(statusEventProducer).compilationError(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
         }
     }
 
@@ -77,8 +85,6 @@ class SubmissionServiceTest {
 
         private Compiler compiler;
         private CompiledProgram compiledProgram;
-        private final int PROBLEM_ID = 10;
-        private final int SUBMISSION_ID = 100;
 
         @BeforeEach
         void setUp() {
@@ -102,32 +108,34 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compilationError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compilationError(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verifyNoInteractions(problemClient);
-            verifyNoInteractions(compiledProgram);
         }
 
         @Test
-        @DisplayName("should emit INTERNAL_ERROR when testcases are null")
+        @DisplayName("should emit CANCELLED when testcases are null")
         void shouldEmitInternalErrorWhenTestcasesNull() {
             when(problemClient.getProblemTestcases(PROBLEM_ID)).thenReturn(null);
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).cancelled(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
         @Test
-        @DisplayName("should emit INTERNAL_ERROR when testcases list is empty")
+        @DisplayName("should emit CANCELLED when testcases list is empty")
         void shouldEmitInternalErrorWhenTestcasesEmpty() {
             when(problemClient.getProblemTestcases(PROBLEM_ID)).thenReturn(Collections.emptyList());
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).cancelled(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -145,8 +153,10 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).accepted(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).accepted(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -165,8 +175,10 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).wrongAnswer(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).wrongAnswer(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram, times(2)).execute(any(), anyInt());
             verify(compiledProgram).cleanup();
         }
@@ -181,8 +193,10 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).timeLimitExceeded(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).timeLimitExceeded(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -199,10 +213,11 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).internalError(EVENT_PAYLOAD);
             verify(compiledProgram, times(1)).execute(anyList(), anyInt());
-            verify(statusEventProducer, never()).accepted(anyInt(), anyInt());
+            verify(statusEventProducer, never()).accepted(any(SubmissionUpdatedEventPayload.class));
             verify(compiledProgram).cleanup();
         }
 
@@ -216,8 +231,10 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).internalError(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -228,8 +245,9 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).internalError(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -243,8 +261,10 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).internalError(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).internalError(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).cleanup();
         }
 
@@ -258,8 +278,11 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).accepted(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).accepted(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
+            verify(compiledProgram).cleanup();
         }
 
         @Test
@@ -272,8 +295,11 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).accepted(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).accepted(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
+            verify(compiledProgram).cleanup();
         }
 
         @Test
@@ -286,9 +312,12 @@ class SubmissionServiceTest {
 
             submissionService.processSubmission(defaultSubmission(), compiler);
 
-            verify(statusEventProducer).compiled(PROBLEM_ID, SUBMISSION_ID);
-            verify(statusEventProducer).accepted(PROBLEM_ID, SUBMISSION_ID);
+            verify(statusEventProducer).compiled(EVENT_PAYLOAD);
+            verify(statusEventProducer).running(EVENT_PAYLOAD);
+            verify(statusEventProducer).accepted(EVENT_PAYLOAD);
+            verifyNoMoreInteractions(statusEventProducer);
             verify(compiledProgram).execute(List.of(), 2);
+            verify(compiledProgram).cleanup();
         }
     }
 }

@@ -1,11 +1,12 @@
 package com.danyazero.executorservice.model;
 
+import lombok.Builder;
+
 import java.util.UUID;
 
-public record SubmissionUpdated(
+@Builder
+public record SubmissionUpdatedEventPayload(
         UUID userId,
         Integer problemId,
-        Integer submissionId,
-        SubmissionStatus submissionStatus
-) {
-}
+        Integer submissionId
+) { }
