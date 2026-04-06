@@ -14,6 +14,7 @@ import {
   type ProblemSearchParams,
   type Tag,
 } from "@/api/problems";
+import { createLanguage } from "@/api/submissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -57,12 +58,16 @@ export const ProblemsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isDifficultyDialogOpen, setIsDifficultyDialogOpen] = useState(false);
+  const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false);
   const [tagValue, setTagValue] = useState("");
   const [difficultyValue, setDifficultyValue] = useState("");
+  const [languageValue, setLanguageValue] = useState("");
   const [tagError, setTagError] = useState<string | null>(null);
   const [difficultyError, setDifficultyError] = useState<string | null>(null);
+  const [languageError, setLanguageError] = useState<string | null>(null);
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [isCreatingDifficulty, setIsCreatingDifficulty] = useState(false);
+  const [isCreatingLanguage, setIsCreatingLanguage] = useState(false);
 
   const [searchParams, setSearchParams] = useState<ProblemSearchParams>({
     page: 0,
@@ -78,7 +83,10 @@ export const ProblemsPage = () => {
   const canCreateDifficulties =
     keycloakContext.authenticated &&
     keycloakContext.tokenParsed?.roles?.includes("problem.edit_difficulties");
-  const canOpenOptions = canCreateTags || canCreateDifficulties;
+  const canCreateLanguages =
+    keycloakContext.authenticated &&
+    keycloakContext.tokenParsed?.roles?.includes("submission.edit_languages");
+  const canOpenOptions = canCreateTags || canCreateDifficulties || canCreateLanguages;
 
   const loadProblems = useCallback(async (params: ProblemSearchParams) => {
     setIsLoading(true);
@@ -156,6 +164,30 @@ export const ProblemsPage = () => {
     }
   };
 
+  const handleCreateLanguage = async () => {
+    const normalizedLanguage = languageValue.trim();
+
+    if (!normalizedLanguage) {
+      setLanguageError("Language name is required.");
+      return;
+    }
+
+    setIsCreatingLanguage(true);
+    setLanguageError(null);
+
+    try {
+      await createLanguage({ language: normalizedLanguage });
+      setLanguageValue("");
+      setIsLanguageDialogOpen(false);
+    } catch (err) {
+      setLanguageError(
+        err instanceof Error ? err.message : "Failed to create language",
+      );
+    } finally {
+      setIsCreatingLanguage(false);
+    }
+  };
+
   useEffect(() => {
     void loadProblems(searchParams);
   }, [loadProblems]);
@@ -205,6 +237,16 @@ export const ProblemsPage = () => {
                         }}
                       >
                         Create difficulty
+                      </DropdownMenuItem>
+                    )}
+                    {canCreateLanguages && (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setLanguageError(null);
+                          setIsLanguageDialogOpen(true);
+                        }}
+                      >
+                        Create language
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
@@ -356,6 +398,41 @@ export const ProblemsPage = () => {
               disabled={isCreatingDifficulty}
             >
               {isCreatingDifficulty ? "Creating..." : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isLanguageDialogOpen} onOpenChange={setIsLanguageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create language</DialogTitle>
+            <DialogDescription>Add a new compiler / language.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Input
+              value={languageValue}
+              onChange={(event) => {
+                setLanguageValue(event.target.value);
+                setLanguageError(null);
+              }}
+              placeholder="Language name"
+              disabled={isCreatingLanguage}
+            />
+            {languageError ? (
+              <p className="text-sm text-destructive">{languageError}</p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLanguageDialogOpen(false)}
+              disabled={isCreatingLanguage}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreateLanguage} disabled={isCreatingLanguage}>
+              {isCreatingLanguage ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

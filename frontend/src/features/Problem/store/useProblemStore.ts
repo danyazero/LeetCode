@@ -62,10 +62,7 @@ export const useProblemStore = create<ProblemState>((set, get) => ({
         connectHeaders: {
           Authorization: `Bearer ${keycloakContext.token}`,
         },
-        reconnectDelay: 0, // Disable automatic reconnects for submissions
-        debug: (str) => {
-          console.log("STOMP DEBUG: ", str);
-        },
+        reconnectDelay: 0, 
         onConnect: async (frame) => {
           console.log("STOMP onConnect frame:", frame);
           set({ submissionStatus: "CONNECTED" });
@@ -100,7 +97,6 @@ export const useProblemStore = create<ProblemState>((set, get) => ({
             }
           });
 
-          // After WS is established and subscribed, send the REST request
           try {
             const response = await axios.post(
               `http://submission.localhost/api/v1/submissions`,
@@ -115,7 +111,6 @@ export const useProblemStore = create<ProblemState>((set, get) => ({
                 },
               },
             );
-            // Request sent, now waiting for updates
             set((state) => ({ 
                submissionStatus: "SUBMISSION SENT",
                submissionId: response.data?.id || response.data?.submission_id || state.submissionId

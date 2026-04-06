@@ -65,3 +65,29 @@ export async function fetchSubmissionById(
 
   return response.json() as Promise<SubmissionDetails>;
 }
+
+export interface CreateLanguageDto {
+  language: string;
+}
+
+export async function createLanguage(data: CreateLanguageDto): Promise<Language> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (keycloakContext.token) {
+    headers["Authorization"] = `Bearer ${keycloakContext.token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}/languages`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json() as Promise<Language>;
+}
