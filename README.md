@@ -44,6 +44,24 @@ Add the following entries to your /etc/hosts file:
 -127.0.0.1       localhost
 +127.0.0.1       localhost swagger.localhost noty.localhost auth.localhost problem.localhost submission.localhost
 ```
+### Configure startup options
+```env
+PROBLEM_DB=<problem-database-name>
+PROBLEM_DB_USER=<problem-database-user>
+PROBLEM_DB_PASSWORD=<problem-database-password>
+
+SUBMISSION_DB=<submission-database-name>
+SUBMISSION_DB_USER=<submission-database-user>
+SUBMISSION_DB_PASSWORD=<submission-database-password>
+
+KEYCLOAK_DB=<keycloak-database-name>
+KEYCLOAK_DB_USER=<keycloak-database-user>
+KEYCLOAK_DB_PASSWORD=<keycloak-database-password>
+
+KEYCLOAK_URL=auth.localhost
+KEYCLOAK_ADMIN_USERNAME=<keycloak-admin-username>
+KEYCLOAK_ADMIN_PASSWORD=<keycloak-admin-password>
+```
 ### Run the project
 
 ```shell
